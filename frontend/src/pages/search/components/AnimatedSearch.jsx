@@ -1,150 +1,84 @@
 import { useState, useRef } from 'react'
+import './AnimatedSearch.css'
 
 export default function AnimatedSearch({ value, onChange }) {
-  const [phase, setPhase]         = useState('idle')
   const [expanded, setExpanded]   = useState(false)
-  const [inputVisible, setInputVisible] = useState(false)
   const [animating, setAnimating] = useState(false)
-  const inputRef = useRef(null)
+  const svgRef    = useRef(null)
+  const lensRef   = useRef(null)
+  const handleRef = useRef(null)
+  const inputRef  = useRef(null)
 
   function start() {
-    if (phase !== 'idle') return
-    setPhase('animating')
+    if (animating || expanded) return
     setAnimating(true)
 
+    // 1. Поворот ручки вниз
+    svgRef.current.style.transform = 'rotate(-45deg)'
+
+    // 2. Быстрое увеличение ×3
     setTimeout(() => {
-      setExpanded(true)
+      svgRef.current.style.transform = 'rotate(-45deg) scale(1.5)'
+    }, 400)
+
+    // 3. Обороты линзы + исчезновение ручки
+    setTimeout(() => {
+      lensRef.current.style.transform = 'rotateY(720deg)'
+      handleRef.current.style.strokeDashoffset = '7.78'
+
+      // Раскрываем в поисковое поле
       setTimeout(() => {
+        svgRef.current.style.transform = 'rotate(0deg) scale(1)'
+        setExpanded(true)
         setAnimating(false)
-        setInputVisible(true)
-        setPhase('open')
         inputRef.current?.focus()
-      }, 320)
-    }, 80)
+      }, 400)
+    }, 700)
   }
 
   function reset() {
-    setPhase('idle')
     setExpanded(false)
-    setInputVisible(false)
     setAnimating(false)
+    if (svgRef.current)    svgRef.current.style.transform = ''
+    if (lensRef.current)   lensRef.current.style.transform = ''
+    if (handleRef.current) handleRef.current.style.strokeDashoffset = '0'
     onChange('')
   }
 
   return (
-    <div style={{ position: 'relative', display: 'flex', width: expanded ? '100%' : 40, flexShrink: 0, transition: 'width 320ms cubic-bezier(0.4,0,0.2,1)', willChange: 'width' }}>
-
-      {/* Вращающаяся дуга по периметру */}
-      {!expanded && (
-        <svg
-          width="46" height="46"
-          viewBox="0 0 46 46"
-          className="spin-arc"
-          style={{ position: 'absolute', top: -4, left: -4, pointerEvents: 'none', willChange: 'transform' }}
-        >
-          <circle
-            cx="23" cy="23" r="21"
-            fill="none"
-            stroke="#a78bfa"
-            strokeWidth="0.8"
-            strokeDasharray="30 102"
-            strokeLinecap="round"
-            opacity="0.8"
-          />
-        </svg>
-      )}
-
-      <div
-        onClick={phase === 'idle' ? start : undefined}
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: expanded ? 'flex-start' : 'center',
-          width: '100%',
-          height: 38,
-          borderRadius: expanded ? 9999 : '50%',
-          background: 'rgba(255,255,255,0.08)',
-          // blur только когда не анимируется
-          backdropFilter: animating ? 'none' : 'blur(16px)',
-          WebkitBackdropFilter: animating ? 'none' : 'blur(16px)',
-          border: '1px solid rgba(255,255,255,0.12)',
-          overflow: 'visible',
-          cursor: phase === 'idle' ? 'pointer' : 'default',
-          color: '#a78bfa',
-          padding: expanded ? '0 14px 0 4px' : 0,
-          transition: 'border-radius 320ms cubic-bezier(0.4,0,0.2,1), padding 320ms cubic-bezier(0.4,0,0.2,1)',
-          flexShrink: 0,
-          willChange: 'border-radius',
-          transform: 'translateZ(0)',
-        }}
-      >
-        {/* Лупа */}
-        <svg
-          width="23" height="23"
-          viewBox="0 0 24 24"
-          style={{
-            flexShrink: 0,
-            transformOrigin: 'center',
-            marginTop: 1,
-            transform: animating ? 'scale(1.2) rotate(-20deg)' : 'scale(1) rotate(0deg)',
-            transition: animating
-              ? 'transform 150ms cubic-bezier(0.4,0,0.2,1)'
-              : 'transform 200ms cubic-bezier(0.4,0,0.2,1)',
-            willChange: 'transform',
-          }}
-        >
-          <circle cx="9.5" cy="9.5" r="6.5" fill="none" stroke="currentColor" strokeWidth="2" />
-          <path
-            d="M15.5 15.5 L21 21"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2.2"
-            strokeLinecap="round"
-            style={{
-              opacity: expanded ? 0 : 1,
-              transition: 'opacity 150ms ease',
-            }}
-          />
-        </svg>
-
-        {/* Поле ввода */}
-        <input
-          ref={inputRef}
-          type="text"
-          value={value}
-          onChange={e => onChange(e.target.value)}
-          placeholder="Filter collections..."
-          style={{
-            flex: inputVisible ? 1 : 0,
-            width: inputVisible ? 'auto' : 0,
-            marginLeft: inputVisible ? 8 : 0,
-            opacity: inputVisible ? 1 : 0,
-            background: 'transparent',
-            border: 'none',
-            outline: 'none',
-            fontSize: 15,
-            color: '#a78bfa',
-            transition: 'opacity 180ms ease',
-          }}
+    <div
+      className={`as-container${expanded ? ' as-expanded' : ''}`}
+      onClick={!expanded && !animating ? start : undefined}
+    >
+      <svg ref={svgRef} className="as-svg" width="22" height="22" viewBox="0 0 24 24">
+        <g ref={lensRef} className="as-lens">
+          <circle cx="9.5" cy="9.5" r="6.5" fill="none" stroke="currentColor" strokeWidth="2.2"/>
+        </g>
+        <path
+          ref={handleRef}
+          d="M15.5 15.5 L21 21"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.2"
+          strokeLinecap="round"
+          className="as-handle"
         />
+      </svg>
 
-        {/* Крестик */}
-        {inputVisible && (
-          <button
-            onClick={e => { e.stopPropagation(); reset() }}
-            style={{
-              background: 'none',
-              border: 'none',
-              color: '#a78bfa',
-              cursor: 'pointer',
-              fontSize: 20,
-              lineHeight: 1,
-              padding: '0 2px',
-              flexShrink: 0,
-            }}
-          >×</button>
-        )}
-      </div>
+      <input
+        ref={inputRef}
+        type="text"
+        value={value}
+        onChange={e => onChange(e.target.value)}
+        placeholder="Filter collections..."
+        className="as-input"
+      />
+
+      {expanded && (
+        <button className="as-close" onClick={e => { e.stopPropagation(); reset() }}>
+          ×
+        </button>
+      )}
     </div>
   )
 }
