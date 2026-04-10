@@ -485,87 +485,6 @@ const NetworkLines = () => (
 )
 
 /* ── styles ─────────────────────────────────────────────── */
-const css = `
-  @keyframes orbA {
-    0%,100% { transform: translate(0,0) scale(1); }
-    33%      { transform: translate(40px,-30px) scale(1.15); }
-    66%      { transform: translate(-20px,40px) scale(0.9); }
-  }
-  @keyframes orbB {
-    0%,100% { transform: translate(0,0) scale(1); }
-    33%      { transform: translate(-50px,20px) scale(0.85); }
-    66%      { transform: translate(30px,-40px) scale(1.1); }
-  }
-  @keyframes sweep {
-    from { transform: rotate(0deg); }
-    to   { transform: rotate(360deg); }
-  }
-  @keyframes shimmer {
-    0%   { background-position: -200% center; }
-    100% { background-position: 200% center; }
-  }
-  @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(16px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-  @keyframes lightSweep {
-    0%   { left: -100%; }
-    100% { left: 200%; }
-  }
-  @keyframes aurora1 {
-    0%,100% { transform: translateX(-35%) translateY(10%) rotate(-8deg) scaleY(1); }
-    50%      { transform: translateX(25%) translateY(-15%) rotate(6deg) scaleY(1.4); }
-  }
-  @keyframes aurora2 {
-    0%,100% { transform: translateX(25%) translateY(-5%) rotate(5deg) scaleY(1.1); }
-    50%      { transform: translateX(-30%) translateY(20%) rotate(-9deg) scaleY(0.8); }
-  }
-  @keyframes aurora3 {
-    0%,100% { transform: translateX(-15%) translateY(5%) rotate(-3deg); }
-    33%      { transform: translateX(35%) translateY(-10%) rotate(7deg); }
-    66%      { transform: translateX(-25%) translateY(15%) rotate(-5deg); }
-  }
-
-  .orb-a { animation: orbA 12s ease-in-out infinite; }
-  .orb-b { animation: orbB 15s ease-in-out infinite; }
-
-  .shimmer-text {
-    background: linear-gradient(90deg, #e4e4e7 0%, #fff 30%, #a78bfa 50%, #fff 70%, #e4e4e7 100%);
-    background-size: 200% auto;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    animation: shimmer 5.25s linear 1.3s infinite;
-  }
-
-  .carousel-card {
-    position: absolute;
-    width: calc(100vw - 48px);
-    height: 320px;
-    border-radius: 24px;
-    overflow: hidden;
-    cursor: pointer;
-    transition: transform 0.55s cubic-bezier(0.34,1.56,0.64,1), opacity 0.55s ease, box-shadow 0.55s ease;
-    will-change: transform, opacity;
-    left: 24px;
-  }
-  .carousel-card.active {
-    transform: translateX(0) rotateY(0deg) scale(1);
-    opacity: 1;
-    z-index: 10;
-  }
-  .carousel-card.next {
-    transform: translateX(68%) rotateY(-28deg) scale(0.82);
-    opacity: 0.5;
-    z-index: 5;
-  }
-  .carousel-card.prev {
-    transform: translateX(-68%) rotateY(28deg) scale(0.82);
-    opacity: 0.5;
-    z-index: 5;
-  }
-`
-
 /* ── component ──────────────────────────────────────────── */
 export default function Home() {
   const navigate = useNavigate()
@@ -604,10 +523,7 @@ export default function Home() {
   }
 
   return (
-    <>
-      <style>{css}</style>
-
-      <div style={{ background: '#080808', height: '100dvh', display: 'flex', flexDirection: 'column', position: 'relative', overflow: 'hidden' }}>
+    <div style={{ background: '#080808', height: '100dvh', display: 'flex', flexDirection: 'column', position: 'relative', overflow: 'hidden' }}>
 
         <NetworkLines/>
 
@@ -702,7 +618,6 @@ export default function Home() {
           </div>
         </div>
 
-      </div>
-    </>
+    </div>
   )
 }
