@@ -628,7 +628,7 @@ export default function Home() {
     <>
       <style>{css}</style>
 
-      <div style={{ background: '#080808', minHeight: '100svh', display: 'flex', flexDirection: 'column', position: 'relative', overflowX: 'hidden', overflowY: 'auto' }}>
+      <div style={{ background: '#080808', minHeight: '100svh', display: 'flex', flexDirection: 'column', position: 'relative', overflow: 'hidden' }}>
 
         <NetworkLines/> 
 
@@ -683,7 +683,7 @@ export default function Home() {
         <div style={{
           position: 'relative', height: 320, zIndex: 1,
           perspective: '1000px', perspectiveOrigin: '50% 50%',
-          overflow: 'visible',
+          overflow: 'hidden',
         }}
           onTouchStart={onTouchStart}
           onTouchMove={onTouchMove}
