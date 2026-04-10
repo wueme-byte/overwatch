@@ -600,7 +600,7 @@ export default function Home() {
         <div style={{
           position: 'relative', height: 320, zIndex: 1,
           perspective: '1000px', perspectiveOrigin: '50% 50%',
-          overflow: 'hidden',
+          overflow: 'hidden', touchAction: 'none',
         }}
           onTouchStart={onTouchStart}
           onTouchMove={onTouchMove}
