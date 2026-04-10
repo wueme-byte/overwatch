@@ -553,7 +553,7 @@ const css = `
   .carousel-card {
     position: absolute;
     width: calc(100vw - 48px);
-    height: 320px;
+    height: 300px;
     border-radius: 24px;
     overflow: hidden;
     cursor: pointer;
@@ -681,7 +681,7 @@ export default function Home() {
 
         {/* ── 3D carousel ── */}
         <div style={{
-          position: 'relative', height: 320, zIndex: 1,
+          position: 'relative', height: 320, paddingTop: 10, zIndex: 1,
           perspective: '1000px', perspectiveOrigin: '50% 50%',
           overflow: 'hidden',
         }}
