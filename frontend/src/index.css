@@ -1,0 +1,50 @@
+@import "tailwindcss";
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Manrope', system-ui, sans-serif;
+  background: #0f0f0f;
+  color: #ffffff;
+}
+
+@keyframes glowPulse {
+  0%, 100% { opacity: 0.45; transform: scale(1.15); }
+  50%       { opacity: 0.7;  transform: scale(1.2);  }
+}
+
+@keyframes orbA {
+  0%,100% { transform: translate(0,0) scale(1); }
+  33%      { transform: translate(40px,-30px) scale(1.15); }
+  66%      { transform: translate(-20px,40px) scale(0.9); }
+}
+@keyframes orbB {
+  0%,100% { transform: translate(0,0) scale(1); }
+  33%      { transform: translate(-50px,20px) scale(0.85); }
+  66%      { transform: translate(30px,-40px) scale(1.1); }
+}
+
+.orb-a { animation: orbA 12s ease-in-out infinite; }
+.orb-b { animation: orbB 15s ease-in-out infinite; }
+
+@keyframes spinArc {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+.spin-arc { animation: spinArc 2s linear infinite; }
+
+@keyframes pageEnter {
+  from { opacity: 0; transform: translateY(24px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.page-enter { animation: pageEnter 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+
+@keyframes pageExit {
+  from { opacity: 1; transform: translateY(0) scale(1); }
+  to   { opacity: 0; transform: translateY(24px) scale(0.97); }
+}
+.page-exit { animation: pageExit 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards; }

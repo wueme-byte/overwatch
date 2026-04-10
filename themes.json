@@ -1,0 +1,62 @@
+{
+  "ladybug": {
+    "name": "Ladybug",
+    "items": [
+      {"collection": "neko helmet", "model": "Ladybug"},
+      {"collection": "precious peach", "model": "Ladybug"},
+      {"collection": "easter egg", "model": "Ladybird"},
+      {"collection": "snow mittens", "model": "Ladybug"},
+      {"collection": "record player", "model": "Ladybugs"},
+      {"collection": "berry box", "model": "Lady Bites"},
+      {"collection": "joyful bundle", "model": "Ladypug"},
+      {"collection": "bow tie", "model": "Ladybug"},
+      {"collection": "sky stilettos", "model": "Ladybug"},
+      {"collection": "heroic helmet", "model": "Ladybug"}
+    ]
+  },
+  "america": {
+    "name": "America",
+    "items": [
+      {"collection": "plush pepe", "model": "Stripes"},
+      {"collection": "loot bags", "model": "Liberty"},
+      {"collection": "vintage cigar", "model": "Saturn V"},
+      {"collection": "snow globe", "model": "Musk"},
+      {"collection": "berry box", "model": "Sweet Kiss"},
+      {"collection": "hanging star", "model": "United States"},
+      {"collection": "signet ring", "model": "Liberty"},
+      {"collection": "hanging star", "model": "Hollywood"},
+      {"collection": "snow globe", "model": "Wild West"},
+      {"collection": "top hat", "model": "Uncle Sam"},
+      {"collection": "jester hat", "model": "Great Again"},
+      {"collection": "party sparkler", "model": "4th of July"},
+      {"collection": "durov's cap", "model": "Patriot"}
+    ]
+  },
+  "btc": {
+    "name": "BTC",
+    "items": [
+      {"collection": "precious peach", "model": "Crypto Orange"},
+      {"collection": "signet ring", "model": "Crypto Boom"},
+      {"collection": "party sparkler", "model": "Bitcoin"},
+      {"collection": "spy agaric", "model": "Miner's Bloom"},
+      {"collection": "desk calendar", "model": "Hodler"},
+      {"collection": "sky stilettos", "model": "Crypto Queen"},
+      {"collection": "ice cream", "model": "Bitecoin"},
+      {"collection": "instant ramen", "model": "Bitcoins"},
+      {"collection": "pool float", "model": "Crypto Whale"},
+      {"collection": "big year", "model": "Bitcoin"}
+    ]
+  },
+  "pokemon": {
+    "name": "Pokemon",
+    "items": [
+      {"collection": "durov's cap", "model": "Pokemon"},
+      {"collection": "sleigh bell", "model": "Poke Bell"},
+      {"collection": "hypno lollipop", "model": "Ketchum"},
+      {"collection": "party sparkler", "model": "Pika Pika"},
+      {"collection": "ginger cookie", "model": "Pika Pika"},
+      {"collection": "hex pot", "model": "Pikabew"},
+      {"collection": "big year", "model": "Pokeball"}
+    ]
+  }
+}
