@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { pepePaths, capPaths, bunnyPaths } from '../../assets/giftPaths'
 import HomeCard from './components/HomeCard'
@@ -604,6 +604,13 @@ export default function Home() {
   const touchStartX = useRef(null)
   const touchStartY = useRef(null)
   const isDragging = useRef(false)
+
+  useEffect(() => {
+    requestAnimationFrame(() => {
+      window.scrollBy(0, 1)
+      requestAnimationFrame(() => window.scrollBy(0, -1))
+    })
+  }, [])
 
   const next = () => setActive(i => (i + 1) % cards.length)
   const prev = () => setActive(i => (i - 1 + cards.length) % cards.length)
