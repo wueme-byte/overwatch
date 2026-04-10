@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { pepePaths, capPaths, bunnyPaths } from '../../assets/giftPaths'
 import HomeCard from './components/HomeCard'
@@ -41,40 +41,9 @@ const cards = [
     glow: 'rgba(109,40,217,0.35)',
     visual: (
       <div style={{ position: 'absolute', inset: 0, overflow: 'hidden' }}>
-        {/* aurora ribbon 1 — широкий фиолетовый */}
         <div style={{
-          position: 'absolute',
-          top: '-20%', left: '-20%',
-          width: '140%', height: '55%',
-          background: 'linear-gradient(180deg, transparent 0%, rgba(109,40,217,0.45) 40%, rgba(139,92,246,0.3) 60%, transparent 100%)',
-          filter: 'blur(28px)',
-          animation: 'aurora1 9s ease-in-out infinite',
-        }}/>
-        {/* aurora ribbon 2 — синевато-фиолетовый */}
-        <div style={{
-          position: 'absolute',
-          top: '10%', left: '-30%',
-          width: '160%', height: '45%',
-          background: 'linear-gradient(180deg, transparent 0%, rgba(76,29,149,0.5) 35%, rgba(167,139,250,0.25) 65%, transparent 100%)',
-          filter: 'blur(22px)',
-          animation: 'aurora2 12s ease-in-out infinite',
-        }}/>
-        {/* aurora ribbon 3 — тонкий яркий */}
-        <div style={{
-          position: 'absolute',
-          top: '25%', left: '-10%',
-          width: '120%', height: '30%',
-          background: 'linear-gradient(180deg, transparent 0%, rgba(192,132,252,0.35) 50%, transparent 100%)',
-          filter: 'blur(16px)',
-          animation: 'aurora3 7s ease-in-out infinite',
-        }}/>
-        {/* тонкий верхний блик */}
-        <div style={{
-          position: 'absolute',
-          top: 0, left: '10%',
-          width: '80%', height: '2px',
-          background: 'linear-gradient(90deg, transparent, rgba(192,132,252,0.6), transparent)',
-          filter: 'blur(3px)',
+          position: 'absolute', inset: 0,
+          background: 'radial-gradient(ellipse at 50% 30%, rgba(109,40,217,0.35) 0%, transparent 70%)',
         }}/>
 
         {/* search results preview */}
@@ -605,13 +574,6 @@ export default function Home() {
   const touchStartY = useRef(null)
   const isDragging = useRef(false)
 
-  useEffect(() => {
-    requestAnimationFrame(() => {
-      window.scrollBy(0, 1)
-      requestAnimationFrame(() => window.scrollBy(0, -1))
-    })
-  }, [])
-
   const next = () => setActive(i => (i + 1) % cards.length)
   const prev = () => setActive(i => (i - 1 + cards.length) % cards.length)
 
@@ -650,7 +612,7 @@ export default function Home() {
         <NetworkLines/>
 
         {/* ── ambient orbs ── */}
-        <div style={{ position: 'fixed', inset: 0, pointerEvents: 'none', overflow: 'hidden' }}>
+        <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', overflow: 'hidden' }}>
           <div className="orb-a" style={{
             position: 'absolute', top: '-10%', left: '-10%',
             width: 320, height: 320, borderRadius: '50%',
@@ -665,7 +627,7 @@ export default function Home() {
 
         {/* ── dot grid ── */}
         <div style={{
-          position: 'fixed', inset: 0, pointerEvents: 'none',
+          position: 'absolute', inset: 0, pointerEvents: 'none',
           backgroundImage: 'radial-gradient(rgba(255,255,255,0.025) 1px, transparent 1px)',
           backgroundSize: '20px 20px',
         }}/>
