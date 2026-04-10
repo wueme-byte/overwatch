@@ -706,7 +706,7 @@ export default function Home() {
         </div>
 
         {/* dots */}
-        <div style={{ display: 'flex', justifyContent: 'center', gap: 6, marginTop: 16, zIndex: 1, position: 'relative' }}>
+        <div style={{ display: 'flex', justifyContent: 'center', gap: 6, marginTop: 16, zIndex: 1, position: 'relative', transform: 'translateZ(0)' }}>
           {cards.map((_, i) => (
             <div key={i} onClick={() => setActive(i)} style={{
               width: i === active ? 20 : 6, height: 6,
@@ -719,7 +719,7 @@ export default function Home() {
         </div>
 
         {/* ── footer ── */}
-        <div style={{ marginTop: 'auto', padding: '28px 24px 32px', textAlign: 'center', position: 'relative', zIndex: 1 }}>
+        <div style={{ marginTop: 'auto', padding: '28px 24px 32px', textAlign: 'center', position: 'relative', zIndex: 1, transform: 'translateZ(0)' }}>
           <div style={{ fontSize: 10, color: '#27272a', letterSpacing: '0.1em', fontWeight: 600 }}>
             GETGEMS · FRAGMENT
           </div>
