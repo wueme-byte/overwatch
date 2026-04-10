@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { pepePaths, capPaths, bunnyPaths } from '../../assets/giftPaths'
 import HomeCard from './components/HomeCard'
@@ -486,12 +486,26 @@ const NetworkLines = () => (
 
 /* ── styles ─────────────────────────────────────────────── */
 /* ── component ──────────────────────────────────────────── */
+const getTgHeight = () =>
+  window.Telegram?.WebApp?.viewportHeight || window.innerHeight
+
 export default function Home() {
   const navigate = useNavigate()
   const [active, setActive] = useState(0)
+  const [vh, setVh] = useState(getTgHeight)
   const touchStartX = useRef(null)
   const touchStartY = useRef(null)
   const isDragging = useRef(false)
+
+  useEffect(() => {
+    const update = () => setVh(getTgHeight())
+    window.Telegram?.WebApp?.onEvent('viewportChanged', update)
+    window.addEventListener('resize', update)
+    return () => {
+      window.Telegram?.WebApp?.offEvent('viewportChanged', update)
+      window.removeEventListener('resize', update)
+    }
+  }, [])
 
   const next = () => setActive(i => (i + 1) % cards.length)
   const prev = () => setActive(i => (i - 1 + cards.length) % cards.length)
@@ -523,7 +537,7 @@ export default function Home() {
   }
 
   return (
-    <div style={{ background: '#080808', height: '100dvh', display: 'flex', flexDirection: 'column', position: 'relative', overflow: 'hidden' }}>
+    <div style={{ background: '#080808', height: vh, display: 'flex', flexDirection: 'column', position: 'relative', overflow: 'hidden' }}>
 
         <NetworkLines/>
 
