@@ -1,17 +1,45 @@
-export default function HomeCard({ card, position, onClick }) {
+export default function HomeCard({ card, position, dragOffset, isTouching, onClick }) {
+  const dragging = dragOffset !== 0
+  const pressing = isTouching && !dragging
+
+  // live transform во время перетаскивания
+  let liveTransform = null
+  let liveTransition = null
+
+  if (dragging) {
+    liveTransition = 'none'
+    if (position === 'active') {
+      liveTransform = `translateX(${dragOffset}px) rotateY(0deg) scale(1)`
+    } else if (position === 'next') {
+      liveTransform = `translateX(calc(68% + ${dragOffset}px)) rotateY(-28deg) scale(0.82)`
+    } else {
+      liveTransform = `translateX(calc(-68% + ${dragOffset}px)) rotateY(28deg) scale(0.82)`
+    }
+  }
+
+  const isActive = position === 'active'
+
+  const boxShadow = isActive
+    ? pressing
+      ? `0 0 80px ${card.glow}, 0 0 30px ${card.border}, 0 20px 60px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.07)`
+      : `0 0 60px ${card.glow}, 0 20px 60px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.07)`
+    : 'none'
+
   return (
     <div
       className={`carousel-card ${position}`}
       onClick={onClick}
       style={{
         background: card.bg,
-        border: `1px solid ${card.border}`,
-        boxShadow: position === 'active'
-          ? `0 0 60px ${card.glow}, 0 20px 60px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.07)`
-          : 'none',
+        border: pressing && isActive
+          ? `1px solid ${card.color2}`
+          : `1px solid ${card.border}`,
+        boxShadow,
+        ...(liveTransform ? { transform: liveTransform } : {}),
+        ...(liveTransition ? { transition: liveTransition } : {}),
       }}
     >
-      {/* визуал на фоне карточки (радар, сетка и т.д.) */}
+      {/* визуал на фоне */}
       <div style={{ position: 'absolute', inset: 0, opacity: 0.7 }}>
         {card.visual}
       </div>
@@ -22,7 +50,7 @@ export default function HomeCard({ card, position, onClick }) {
         background: `linear-gradient(to top, ${card.bg} 0%, transparent 50%)`,
       }}/>
 
-      {/* контент: иконка, тег, заголовок, описание */}
+      {/* контент */}
       <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '0 22px 22px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
           <div style={{
