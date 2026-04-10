@@ -5,7 +5,7 @@ import Themes from './pages/themes'
 
 export default function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename="/overwatch">
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/search" element={<Search />} />
