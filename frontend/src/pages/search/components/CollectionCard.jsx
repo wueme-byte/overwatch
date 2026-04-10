@@ -3,11 +3,9 @@ import { useState } from 'react'
 function CollectionAvatar({ col }) {
   const [imgOk, setImgOk] = useState(!!col.image)
   const initials = col.name.split(' ').slice(0, 2).map(w => w[0]?.toUpperCase()).join('')
-  const src = col.image?.replace(/rs:fill:\d+:\d+/, 'rs:fill:300:300')
-
   return imgOk ? (
     <img
-      src={src}
+      src={col.image}
       alt={col.name}
       className="w-full h-full object-cover"
       onError={() => setImgOk(false)}

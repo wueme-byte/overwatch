@@ -115,7 +115,7 @@ async def get_collections():
                 collections.append({
                     "name": col.get("name", ""),
                     "address": col.get("address", ""),
-                    "image": sizes.get("96") or col.get("image") or None,
+                    "image": sizes.get("352") or sizes.get("96") or col.get("image") or None,
                 })
 
             if not cursor or len(items) < 100:
