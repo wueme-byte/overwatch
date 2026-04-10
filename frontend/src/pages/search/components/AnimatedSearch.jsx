@@ -64,7 +64,7 @@ export default function AnimatedSearch({ value, onChange }) {
           width="46" height="46"
           viewBox="0 0 46 46"
           className="spin-arc"
-          style={{ position: 'absolute', top: -4, left: -4, pointerEvents: 'none' }}
+          style={{ position: 'absolute', top: -4, left: -4, pointerEvents: 'none', willChange: 'transform' }}
         >
           <circle
             cx="23" cy="23" r="21"
@@ -97,6 +97,8 @@ export default function AnimatedSearch({ value, onChange }) {
         padding: expanded ? '0 14px 0 4px' : 0,
         transition: 'width 420ms cubic-bezier(0.4,0,0.2,1), border-radius 420ms cubic-bezier(0.4,0,0.2,1), padding 420ms cubic-bezier(0.4,0,0.2,1)',
         flexShrink: 0,
+        willChange: 'width, border-radius',
+        transform: 'translateZ(0)',
       }}
     >
       {/* Лупа — остаётся иконкой слева после раскрытия */}
@@ -109,12 +111,14 @@ export default function AnimatedSearch({ value, onChange }) {
           transition: svgTransition,
           transformOrigin: 'center',
           marginTop: 1,
+          willChange: 'transform',
         }}
       >
         <g style={{
           transform: lensTransform,
           transition: 'transform 820ms cubic-bezier(0.25,0.1,0.25,1)',
           transformOrigin: 'center',
+          willChange: 'transform',
         }}>
           <circle cx="9.5" cy="9.5" r="6.5" fill="none" stroke="currentColor" strokeWidth="2" />
         </g>
