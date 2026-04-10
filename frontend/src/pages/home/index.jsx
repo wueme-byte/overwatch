@@ -555,7 +555,7 @@ const css = `
     width: calc(100vw - 48px);
     height: 320px;
     border-radius: 24px;
-    overflow: visible;
+    overflow: hidden;
     cursor: pointer;
     transition: transform 0.55s cubic-bezier(0.34,1.56,0.64,1), opacity 0.55s ease, box-shadow 0.55s ease;
     will-change: transform, opacity;
@@ -677,7 +677,7 @@ export default function Home() {
         </div>
 
         {/* ── divider ── */}
-        <div style={{ height: 1, background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.06), transparent)', margin: '25px 24px' }}/>
+        <div style={{ height: 1, background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.06), transparent)', margin: '28px 24px' }}/>
 
         {/* ── 3D carousel ── */}
         <div style={{
