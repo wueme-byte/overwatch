@@ -8,6 +8,7 @@ function CollectionAvatar({ col }) {
       src={col.image}
       alt={col.name}
       className="w-full h-full object-cover"
+      referrerPolicy="no-referrer"
       onError={() => setImgOk(false)}
     />
   ) : (
