@@ -493,6 +493,8 @@ export default function Home() {
   const navigate = useNavigate()
   const [active, setActive] = useState(0)
   const [vh, setVh] = useState(getTgHeight)
+  const [dragOffset, setDragOffset] = useState(0)
+  const [isTouching, setIsTouching] = useState(false)
   const touchStartX = useRef(null)
   const touchStartY = useRef(null)
   const isDragging = useRef(false)
@@ -514,14 +516,20 @@ export default function Home() {
     touchStartX.current = e.touches[0].clientX
     touchStartY.current = e.touches[0].clientY
     isDragging.current = false
+    setIsTouching(true)
   }
   const onTouchMove = e => {
     if (touchStartX.current === null) return
-    const dx = Math.abs(e.touches[0].clientX - touchStartX.current)
+    const dx = e.touches[0].clientX - touchStartX.current
     const dy = Math.abs(e.touches[0].clientY - touchStartY.current)
-    if (dx > dy) isDragging.current = true
+    if (Math.abs(dx) > dy) {
+      isDragging.current = true
+      setDragOffset(dx)
+    }
   }
   const onTouchEnd = e => {
+    setIsTouching(false)
+    setDragOffset(0)
     if (!isDragging.current) return
     const diff = touchStartX.current - e.changedTouches[0].clientX
     if (diff > 40) next()
@@ -603,6 +611,8 @@ export default function Home() {
               key={card.id}
               card={card}
               position={getPos(i)}
+              dragOffset={dragOffset}
+              isTouching={isTouching}
               onClick={() => {
                 if (getPos(i) === 'active') navigate(card.path)
                 else if (getPos(i) === 'next') next()
