@@ -598,7 +598,7 @@ export default function Home() {
 
         {/* ── 3D carousel ── */}
         <div style={{
-          position: 'relative', height: 320, zIndex: 1,
+          position: 'relative', height: 340, paddingTop: 10, zIndex: 1,
           perspective: '1000px', perspectiveOrigin: '50% 50%',
           overflow: 'hidden', touchAction: 'none',
         }}
