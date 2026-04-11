@@ -279,18 +279,6 @@ const Radar = () => {
             <stop offset="100%" stopColor="#6d28d9" stopOpacity="0.35"/>
           </radialGradient>
 
-          <filter id="armGlow" x="-50%" y="-50%" width="200%" height="200%">
-            <feGaussianBlur stdDeviation="2" result="blur"/>
-            <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-          </filter>
-          <filter id="blipGlow" x="-100%" y="-100%" width="300%" height="300%">
-            <feGaussianBlur stdDeviation="2.5" result="blur"/>
-            <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-          </filter>
-          <filter id="coreGlow" x="-80%" y="-80%" width="260%" height="260%">
-            <feGaussianBlur stdDeviation="5" result="blur"/>
-            <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-          </filter>
         </defs>
 
         {/* bg */}
@@ -354,10 +342,9 @@ const Radar = () => {
         {/* sweep arm */}
         <g style={{ transformOrigin: `${C}px ${C}px`, animation: 'sweep 3s linear infinite' }}>
           <line x1={C} y1={C} x2={C} y2={C-R+2}
-            stroke="rgba(192,168,255,0.9)" strokeWidth="1"
-            filter="url(#armGlow)"/>
+            stroke="rgba(192,168,255,0.9)" strokeWidth="1"/>
           {/* tip */}
-          <circle cx={C} cy={C-R+5} r="2.5" fill="#c4b5fd" filter="url(#armGlow)"/>
+          <circle cx={C} cy={C-R+5} r="2.5" fill="#c4b5fd"/>
           {/* mid dot */}
           <circle cx={C} cy={C-42} r="1.2" fill="rgba(167,139,250,0.6)"/>
         </g>
@@ -365,7 +352,7 @@ const Radar = () => {
         {/* blips */}
         {blips.map((b,i) => (
           <g key={i}>
-            <circle cx={b.cx} cy={b.cy} r={b.r} fill={b.color} filter="url(#blipGlow)">
+            <circle cx={b.cx} cy={b.cy} r={b.r} fill={b.color}>
               <animate attributeName="opacity" values="0.9;0.1;0.9" dur={b.dur} begin={b.delay} repeatCount="indefinite"/>
             </circle>
             {/* expanding ring on blip */}
@@ -377,7 +364,7 @@ const Radar = () => {
         ))}
 
         {/* core glow */}
-        <circle cx={C} cy={C} r="10" fill="rgba(109,40,217,0.3)" filter="url(#coreGlow)"/>
+        <circle cx={C} cy={C} r="10" fill="rgba(109,40,217,0.3)"/>
       </svg>
 
       {/* center logo */}
