@@ -460,6 +460,7 @@ export default function Home() {
   const touchStartX = useRef(null)
   const touchStartY = useRef(null)
   const isDragging = useRef(false)
+  const carouselRef = useRef(null)
 
   useEffect(() => {
     const update = () => setVh(getTgHeight())
@@ -469,6 +470,16 @@ export default function Home() {
       window.Telegram?.WebApp?.offEvent('viewportChanged', update)
       window.removeEventListener('resize', update)
     }
+  }, [])
+
+  useEffect(() => {
+    const el = carouselRef.current
+    if (!el) return
+    const handler = e => {
+      if (isDragging.current) e.preventDefault()
+    }
+    el.addEventListener('touchmove', handler, { passive: false })
+    return () => el.removeEventListener('touchmove', handler)
   }, [])
 
   const next = () => setActive(i => (i + 1) % cards.length)
@@ -559,7 +570,7 @@ export default function Home() {
         <div style={{ height: 1, background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.06), transparent)', margin: '28px 24px' }}/>
 
         {/* ── 3D carousel ── */}
-        <div style={{
+        <div ref={carouselRef} style={{
           position: 'relative', height: 340, paddingTop: 10, zIndex: 1,
           perspective: '1000px', perspectiveOrigin: '50% 50%',
           overflow: 'hidden', touchAction: 'none',
