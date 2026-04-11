@@ -466,9 +466,12 @@ export default function Home() {
     const update = () => setVh(getTgHeight())
     window.Telegram?.WebApp?.onEvent('viewportChanged', update)
     window.addEventListener('resize', update)
+    // принудительно обновляем после того как Telegram инициализировался
+    const t = setTimeout(update, 100)
     return () => {
       window.Telegram?.WebApp?.offEvent('viewportChanged', update)
       window.removeEventListener('resize', update)
+      clearTimeout(t)
     }
   }, [])
 
