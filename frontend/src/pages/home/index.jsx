@@ -449,7 +449,7 @@ const NetworkLines = () => (
 /* ── styles ─────────────────────────────────────────────── */
 /* ── component ──────────────────────────────────────────── */
 const getTgHeight = () =>
-  window.Telegram?.WebApp?.viewportHeight || window.innerHeight
+  window.innerHeight || window.Telegram?.WebApp?.viewportHeight
 
 export default function Home() {
   const navigate = useNavigate()
