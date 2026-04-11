@@ -1,14 +1,9 @@
-import { useEffect } from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import Home from './pages/home'
 import Search from './pages/search'
 import Themes from './pages/themes'
 
 export default function App() {
-  useEffect(() => {
-    window.Telegram?.WebApp?.requestFullscreen?.()
-  }, [])
-
   return (
     <BrowserRouter basename="/overwatch">
       <Routes>
