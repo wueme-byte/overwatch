@@ -449,7 +449,7 @@ const NetworkLines = () => (
 /* ── styles ─────────────────────────────────────────────── */
 /* ── component ──────────────────────────────────────────── */
 const getTgHeight = () =>
-  window.innerHeight || window.Telegram?.WebApp?.viewportHeight
+  window.Telegram?.WebApp?.viewportHeight || window.innerHeight
 
 export default function Home() {
   const navigate = useNavigate()
@@ -463,12 +463,17 @@ export default function Home() {
   const carouselRef = useRef(null)
 
   useEffect(() => {
-    const update = ({ isStateStable } = {}) => {
-      if (isStateStable === false) return
-      setVh(getTgHeight())
-    }
+    const update = () => setVh(getTgHeight())
     window.Telegram?.WebApp?.onEvent('viewportChanged', update)
     window.addEventListener('resize', update)
+
+    let tries = 0
+    const poll = () => {
+      setVh(getTgHeight())
+      if (++tries < 10) setTimeout(poll, 50)
+    }
+    poll()
+
     return () => {
       window.Telegram?.WebApp?.offEvent('viewportChanged', update)
       window.removeEventListener('resize', update)
