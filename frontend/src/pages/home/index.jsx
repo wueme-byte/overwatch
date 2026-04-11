@@ -476,7 +476,7 @@ export default function Home() {
     const el = carouselRef.current
     if (!el) return
     const handler = e => {
-      if (isDragging.current) e.preventDefault()
+      e.preventDefault()
     }
     el.addEventListener('touchmove', handler, { passive: false })
     return () => el.removeEventListener('touchmove', handler)
