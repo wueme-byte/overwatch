@@ -122,6 +122,11 @@
   pointer-events: auto;
 }
 
+.as-input::placeholder {
+  color: #ffffff;
+  opacity: 1;
+}
+
 /* ── Кнопка закрытия ── */
 .as-close {
   background: none;
