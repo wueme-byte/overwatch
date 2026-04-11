@@ -22,12 +22,6 @@ const ThemeIcon = () => (
   </svg>
 )
 
-const ChevronRight = () => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-    <polyline points="9 18 15 12 9 6"/>
-  </svg>
-)
-
 
 /* ── data ───────────────────────────────────────────────── */
 const cards = [
@@ -35,7 +29,7 @@ const cards = [
     id: 'search', title: 'Search', path: '/search',
     description: 'Find the best price across GetGems & Fragment by collection or model',
     icon: <SearchIcon />, tag: 'Collection · Model · Price',
-    color1: '#7c3aed', color2: '#a78bfa',
+    color2: '#a78bfa',
     bg: 'linear-gradient(145deg, #110822 0%, #0d0520 60%, #080410 100%)',
     border: 'rgba(139,92,246,0.25)',
     glow: 'rgba(109,40,217,0.35)',
@@ -109,7 +103,7 @@ const cards = [
     id: 'themes', title: 'Themes', path: '/themes',
     description: 'Curated gift sets grouped by topic — BTC, Pokemon, America and more',
     icon: <ThemeIcon />, tag: 'BTC · Pokemon · America · Ladybug',
-    color1: '#0369a1', color2: '#38bdf8',
+    color2: '#38bdf8',
     bg: 'linear-gradient(145deg, #041422 0%, #030e1a 60%, #020810 100%)',
     border: 'rgba(56,189,248,0.2)',
     glow: 'rgba(3,105,161,0.35)',
