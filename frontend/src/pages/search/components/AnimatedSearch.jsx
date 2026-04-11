@@ -19,21 +19,19 @@ export default function AnimatedSearch({ value, onChange }) {
     // 2. Быстрое увеличение ×3
     setTimeout(() => {
       svgRef.current.style.transform = 'rotate(-45deg) scale(1.5)'
-    }, 400)
+    }, 180)
 
-    // 3. Обороты линзы + исчезновение ручки
     setTimeout(() => {
       lensRef.current.style.transform = 'rotateY(720deg)'
       handleRef.current.style.strokeDashoffset = '7.78'
 
-      // Раскрываем в поисковое поле
       setTimeout(() => {
         svgRef.current.style.transform = 'rotate(0deg) scale(1)'
         setExpanded(true)
         setAnimating(false)
         inputRef.current?.focus()
-      }, 400)
-    }, 700)
+      }, 220)
+    }, 320)
   }
 
   function reset() {
