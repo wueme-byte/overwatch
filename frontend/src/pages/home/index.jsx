@@ -448,8 +448,10 @@ const NetworkLines = () => (
 
 /* ── styles ─────────────────────────────────────────────── */
 /* ── component ──────────────────────────────────────────── */
-const getTgHeight = () =>
-  window.Telegram?.WebApp?.viewportHeight || window.innerHeight
+const getTgHeight = () => {
+  const tg = window.Telegram?.WebApp
+  return tg?.viewportStableHeight || tg?.viewportHeight || window.innerHeight
+}
 
 export default function Home() {
   const navigate = useNavigate()
@@ -463,19 +465,14 @@ export default function Home() {
   const carouselRef = useRef(null)
 
   useEffect(() => {
+    const tg = window.Telegram?.WebApp
     const update = () => setVh(getTgHeight())
-    window.Telegram?.WebApp?.onEvent('viewportChanged', update)
+    tg?.onEvent('viewportChanged', update)
+    tg?.onEvent('fullscreenChanged', update)
     window.addEventListener('resize', update)
-
-    let tries = 0
-    const poll = () => {
-      setVh(getTgHeight())
-      if (++tries < 10) setTimeout(poll, 50)
-    }
-    poll()
-
     return () => {
-      window.Telegram?.WebApp?.offEvent('viewportChanged', update)
+      tg?.offEvent('viewportChanged', update)
+      tg?.offEvent('fullscreenChanged', update)
       window.removeEventListener('resize', update)
     }
   }, [])
