@@ -39,7 +39,7 @@ export default function AnimatedSearch({ value, onChange }) {
       onClick={!expanded && !animating ? start : undefined}
     >
       <div className="as-bg" />
-      <svg className="as-svg" width="32" height="32" viewBox="0 0 24 24">
+      <svg className="as-svg" width="27" height="27" viewBox="0 0 24 24">
         <g className="as-lens">
           <circle cx="9.5" cy="9.5" r="6.5" fill="none" stroke="currentColor" strokeWidth="2.2"/>
         </g>
