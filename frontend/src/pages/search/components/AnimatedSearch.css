@@ -29,7 +29,7 @@
 
 /* ── Анимация иконки ── */
 .as-container.as-animating .as-svg {
-  animation: searchIconMorph 400ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  animation: searchIconMorph 650ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
 @keyframes searchIconMorph {
@@ -42,7 +42,7 @@
 
 /* ── Анимация линзы ── */
 .as-container.as-animating .as-lens {
-  animation: lensSpin 320ms cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
+  animation: lensSpin 520ms cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
 }
 
 @keyframes lensSpin {
@@ -51,7 +51,7 @@
 
 /* ── Анимация ручки ── */
 .as-container.as-animating .as-handle {
-  animation: handleHide 320ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  animation: handleHide 520ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
 /* ── SVG иконка лупы ── */

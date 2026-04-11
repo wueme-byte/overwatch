@@ -15,7 +15,7 @@ export default function AnimatedSearch({ value, onChange }) {
       setExpanded(true)
       setAnimating(false)
       inputRef.current?.focus()
-    }, 400)
+    }, 650)
   }
 
   function reset() {
