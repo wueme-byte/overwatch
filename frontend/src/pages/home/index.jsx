@@ -466,12 +466,9 @@ export default function Home() {
     const update = () => setVh(getTgHeight())
     window.Telegram?.WebApp?.onEvent('viewportChanged', update)
     window.addEventListener('resize', update)
-    // принудительно обновляем после того как Telegram инициализировался
-    const t = setTimeout(update, 100)
     return () => {
       window.Telegram?.WebApp?.offEvent('viewportChanged', update)
       window.removeEventListener('resize', update)
-      clearTimeout(t)
     }
   }, [])
 
@@ -614,7 +611,7 @@ export default function Home() {
         </div>
 
         {/* ── footer ── */}
-        <div style={{ padding: '8px 24px 24px', textAlign: 'center', position: 'absolute', bottom: 0, left: 0, right: 0, zIndex: 1 }}>
+        <div style={{ marginTop: 'auto', padding: '8px 24px 24px', textAlign: 'center', position: 'relative', zIndex: 1 }}>
           <div style={{ fontSize: 10, color: '#27272a', letterSpacing: '0.1em', fontWeight: 600 }}>
             GETGEMS · FRAGMENT
           </div>
