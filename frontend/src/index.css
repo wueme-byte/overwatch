@@ -69,20 +69,22 @@ body {
   100% { left: 200%; }
 }
 
-@keyframes orbA {
-  0%,100% { transform: translate(0,0) scale(1); }
-  33%      { transform: translate(40px,-30px) scale(1.15); }
-  66%      { transform: translate(-20px,40px) scale(0.9); }
+@keyframes flow {
+  from { stroke-dashoffset: 300; }
+  to   { stroke-dashoffset: 0; }
+}
+@keyframes flowSlow {
+  from { stroke-dashoffset: 500; }
+  to   { stroke-dashoffset: 0; }
+}
+@keyframes blipPulse {
+  0%,100% { opacity: 0.6; r: 2; }
+  50%     { opacity: 1;   r: 3; }
 }
 
-@keyframes orbB {
-  0%,100% { transform: translate(0,0) scale(1); }
-  33%      { transform: translate(-50px,20px) scale(0.85); }
-  66%      { transform: translate(30px,-40px) scale(1.1); }
-}
-
-.orb-a { animation: orbA 12s ease-in-out infinite; }
-.orb-b { animation: orbB 15s ease-in-out infinite; }
+.line-flow  { stroke-dasharray: 4 18; animation: flow     6.7s linear infinite; }
+.line-slow  { stroke-dasharray: 3 28; animation: flowSlow 10.5s linear infinite; }
+.node-pulse { animation: blipPulse 3s ease-in-out infinite; }
 
 .shimmer-text {
   background: linear-gradient(90deg, #e4e4e7 0%, #fff 30%, #a78bfa 50%, #fff 70%, #e4e4e7 100%);
