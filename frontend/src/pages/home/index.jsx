@@ -463,7 +463,10 @@ export default function Home() {
   const carouselRef = useRef(null)
 
   useEffect(() => {
-    const update = () => setVh(getTgHeight())
+    const update = ({ isStateStable } = {}) => {
+      if (isStateStable === false) return
+      setVh(getTgHeight())
+    }
     window.Telegram?.WebApp?.onEvent('viewportChanged', update)
     window.addEventListener('resize', update)
     return () => {
