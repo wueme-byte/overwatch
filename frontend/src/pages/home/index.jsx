@@ -448,34 +448,15 @@ const NetworkLines = () => (
 
 /* ── styles ─────────────────────────────────────────────── */
 /* ── component ──────────────────────────────────────────── */
-const getTgHeight = () => {
-  const tg = window.Telegram?.WebApp
-  return tg?.viewportStableHeight || tg?.viewportHeight || window.innerHeight
-}
-
 export default function Home() {
   const navigate = useNavigate()
   const [active, setActive] = useState(0)
-  const [vh, setVh] = useState(getTgHeight)
   const [dragOffset, setDragOffset] = useState(0)
   const [isTouching, setIsTouching] = useState(false)
   const touchStartX = useRef(null)
   const touchStartY = useRef(null)
   const isDragging = useRef(false)
   const carouselRef = useRef(null)
-
-  useEffect(() => {
-    const tg = window.Telegram?.WebApp
-    const update = () => setVh(getTgHeight())
-    tg?.onEvent('viewportChanged', update)
-    tg?.onEvent('fullscreenChanged', update)
-    window.addEventListener('resize', update)
-    return () => {
-      tg?.offEvent('viewportChanged', update)
-      tg?.offEvent('fullscreenChanged', update)
-      window.removeEventListener('resize', update)
-    }
-  }, [])
 
   useEffect(() => {
     const el = carouselRef.current
