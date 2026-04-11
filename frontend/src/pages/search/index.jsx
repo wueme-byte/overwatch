@@ -50,7 +50,7 @@ export default function Search() {
   }
 
   return (
-    <div className={exiting ? 'page-exit' : 'page-enter'} style={{ background: '#080808', height: '100svh', display: 'flex', flexDirection: 'column', position: 'relative', paddingTop: 'env(safe-area-inset-top)' }}>
+    <div className={exiting ? 'page-exit' : 'page-enter'} style={{ background: '#080808', height: '100svh', display: 'flex', flexDirection: 'column', position: 'relative' }}>
       {BG}
 
       {/* header */}
