@@ -6,7 +6,7 @@ import App from './App.jsx'
 if (window.Telegram?.WebApp) {
   window.Telegram.WebApp.ready()
   window.Telegram.WebApp.expand()
-  window.Telegram.WebApp.requestFullscreen?.()
+  try { window.Telegram.WebApp.requestFullscreen() } catch {}
 }
 
 createRoot(document.getElementById('root')).render(
