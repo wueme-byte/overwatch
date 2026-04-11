@@ -518,7 +518,7 @@ export default function Home() {
   }
 
   return (
-    <div style={{ background: '#080808', minHeight: vh, display: 'flex', flexDirection: 'column', position: 'relative', overflowX: 'hidden', paddingTop: 'env(safe-area-inset-top)' }}>
+    <div style={{ background: '#080808', minHeight: vh, display: 'flex', flexDirection: 'column', position: 'relative', overflowX: 'hidden' }}>
 
         <NetworkLines/>
 
@@ -544,7 +544,7 @@ export default function Home() {
         }}/>
 
         {/* ── hero ── */}
-        <div style={{ padding: '10px 24px 0', display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative', zIndex: 1 }}>
+        <div style={{ padding: '40px 24px 0', display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative', zIndex: 1 }}>
 
           <Radar/>
 
@@ -569,47 +569,49 @@ export default function Home() {
         {/* ── divider ── */}
         <div style={{ height: 1, background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.06), transparent)', margin: '28px 24px' }}/>
 
-        {/* ── 3D carousel ── */}
-        <div ref={carouselRef} style={{
-          position: 'relative', height: 340, paddingTop: 10, zIndex: 1,
-          perspective: '1000px', perspectiveOrigin: '50% 50%',
-          overflow: 'hidden', touchAction: 'none',
-        }}
-          onTouchStart={onTouchStart}
-          onTouchMove={onTouchMove}
-          onTouchEnd={onTouchEnd}
-        >
-          {cards.map((card, i) => (
-            <HomeCard
-              key={card.id}
-              card={card}
-              position={getPos(i)}
-              dragOffset={dragOffset}
-              isTouching={isTouching}
-              onClick={() => {
-                if (getPos(i) === 'active') navigate(card.path)
-                else if (getPos(i) === 'next') next()
-                else prev()
-              }}
-            />
-          ))}
-        </div>
+        {/* ── 3D carousel + dots ── */}
+        <div style={{ position: 'relative', zIndex: 1, height: 380 }}>
+          <div ref={carouselRef} style={{
+            position: 'absolute', top: 0, left: 0, right: 0, height: 380, paddingTop: 30,
+            perspective: '1000px', perspectiveOrigin: '50% 50%',
+            overflow: 'hidden', touchAction: 'none',
+          }}
+            onTouchStart={onTouchStart}
+            onTouchMove={onTouchMove}
+            onTouchEnd={onTouchEnd}
+          >
+            {cards.map((card, i) => (
+              <HomeCard
+                key={card.id}
+                card={card}
+                position={getPos(i)}
+                dragOffset={dragOffset}
+                isTouching={isTouching}
+                onClick={() => {
+                  if (getPos(i) === 'active') navigate(card.path)
+                  else if (getPos(i) === 'next') next()
+                  else prev()
+                }}
+              />
+            ))}
+          </div>
 
-        {/* dots */}
-        <div style={{ display: 'flex', justifyContent: 'center', gap: 6, marginTop: 16, zIndex: 1, position: 'relative' }}>
-          {cards.map((_, i) => (
-            <div key={i} onClick={() => setActive(i)} style={{
-              width: i === active ? 20 : 6, height: 6,
-              borderRadius: 3,
-              background: i === active ? cards[active].color2 : 'rgba(255,255,255,0.15)',
-              transition: 'all 0.4s cubic-bezier(0.34,1.56,0.64,1)',
-              cursor: 'pointer',
-            }}/>
-          ))}
+          {/* dots */}
+          <div style={{ display: 'flex', justifyContent: 'center', gap: 6, position: 'absolute', bottom: 0, left: 0, right: 0 }}>
+            {cards.map((_, i) => (
+              <div key={i} onClick={() => setActive(i)} style={{
+                width: i === active ? 20 : 6, height: 6,
+                borderRadius: 3,
+                background: i === active ? cards[active].color2 : 'rgba(255,255,255,0.15)',
+                transition: 'all 0.4s cubic-bezier(0.34,1.56,0.64,1)',
+                cursor: 'pointer',
+              }}/>
+            ))}
+          </div>
         </div>
 
         {/* ── footer ── */}
-        <div style={{ marginTop: 'auto', padding: '28px 24px 32px', textAlign: 'center', position: 'relative', zIndex: 1 }}>
+        <div style={{ padding: '8px 24px 24px', textAlign: 'center', position: 'absolute', bottom: 0, left: 0, right: 0, zIndex: 1 }}>
           <div style={{ fontSize: 10, color: '#27272a', letterSpacing: '0.1em', fontWeight: 600 }}>
             GETGEMS · FRAGMENT
           </div>
