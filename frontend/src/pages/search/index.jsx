@@ -46,7 +46,7 @@ export default function Search() {
   )
 
   if (selected) {
-    return <CollectionListings col={selected} onBack={() => setSelected(null)} />
+    return <CollectionListings col={selected} onBack={() => { setSelected(null); setFilter('') }} />
   }
 
   return (
