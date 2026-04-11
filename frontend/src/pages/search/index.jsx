@@ -60,13 +60,13 @@ export default function Search() {
           top: 0,
           zIndex: 20,
           paddingTop: 13,
-          paddingBottom: 7,
+          paddingBottom: 30,
           background: 'linear-gradient(180deg, rgba(88,28,220,0.18) 0%, rgba(60,10,160,0.08) 100%)',
           backdropFilter: 'blur(12px)',
           borderBottom: '1px solid rgba(139,92,246,0.15)',
         }}
       >
-        <div className="flex items-center" style={{ marginBottom: 10, paddingLeft: 15 }}>
+        <div className="flex items-center" style={{ marginBottom: 40, paddingLeft: 15 }}>
           <h1 className="text-base font-semibold text-white" style={{ position: 'relative' , left: 90, top: 40, }} >Gifts</h1>
           {!loadingCols && (
             <span className="text-xs text-gray-500" style={{ position: 'relative' , left: 100, top: 41 }}>{collections.length} collections</span>
