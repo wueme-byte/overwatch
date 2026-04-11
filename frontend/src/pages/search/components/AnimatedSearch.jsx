@@ -4,6 +4,7 @@ import './AnimatedSearch.css'
 export default function AnimatedSearch({ value, onChange }) {
   const [expanded, setExpanded]   = useState(false)
   const [animating, setAnimating] = useState(false)
+  const [closing, setClosing]     = useState(false)
   const containerRef = useRef(null)
   const inputRef     = useRef(null)
 
@@ -21,7 +22,14 @@ export default function AnimatedSearch({ value, onChange }) {
   function reset() {
     setExpanded(false)
     setAnimating(false)
+    setClosing(false)
     onChange('')
+  }
+
+  function handleClose(e) {
+    e.stopPropagation()
+    setClosing(true)
+    setTimeout(reset, 180)
   }
 
   return (
@@ -54,8 +62,19 @@ export default function AnimatedSearch({ value, onChange }) {
       />
 
       {expanded && (
-        <button className="as-close" onClick={e => { e.stopPropagation(); reset() }}>
-          ×
+        <button
+          className={`as-close${closing ? ' as-close-exit' : ''}`}
+          onAnimationEnd={e => {
+            if (e.animationName === 'closeAppear') {
+              e.currentTarget.style.animation = 'none'
+            }
+          }}
+          onClick={handleClose}
+        >
+          <svg width="13" height="13" viewBox="0 0 14 14" fill="none">
+            <line x1="2" y1="2" x2="12" y2="12" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"/>
+            <line x1="12" y1="2" x2="2" y2="12" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"/>
+          </svg>
         </button>
       )}
     </div>
