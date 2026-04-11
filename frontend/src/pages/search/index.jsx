@@ -67,9 +67,9 @@ export default function Search() {
         }}
       >
         <div className="flex items-center" style={{ marginBottom: 40, paddingLeft: 15 }}>
-          <h1 className="text-base font-semibold text-white" style={{ position: 'relative' , left: 90, top: 42, }} >Gifts</h1>
+          <h1 className="text-base font-semibold text-white" style={{ position: 'relative' , left: 90, top: 44, }} >Gifts</h1>
           {!loadingCols && (
-            <span className="text-xs text-gray-500" style={{ position: 'relative' , left: 100, top: 43 }}>{collections.length} collections</span>
+            <span className="text-xs text-gray-500" style={{ position: 'relative' , left: 100, top: 45 }}>{collections.length} collections</span>
           )}
         </div>
 
