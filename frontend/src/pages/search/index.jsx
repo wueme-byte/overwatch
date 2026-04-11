@@ -73,7 +73,7 @@ export default function Search() {
           )}
         </div>
 
-        <div className="flex items-center gap-2" style={{ paddingLeft: 15 }}>
+        <div className="flex items-center gap-2" style={{ paddingLeft: 15, position: 'relative', top: 20 }}>
           <button
             onClick={() => { setExiting(true); setTimeout(() => navigate(-1), 300) }}
             className="w-7 h-7 flex items-center justify-center rounded-full bg-white/[0.06] hover:text-white transition-colors"
