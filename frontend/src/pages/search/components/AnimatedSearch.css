@@ -22,7 +22,7 @@
   border-radius: 9999px;
   background: rgba(255, 255, 255, 0.12);
   border: 1px solid rgba(255, 255, 255, 0.18);
-  clip-path: circle(9px at 23px 19px);
+  clip-path: circle(9px at 20px 18px);
   transition: clip-path 620ms cubic-bezier(0.4, 0, 0.2, 1);
   pointer-events: none;
   will-change: clip-path;
