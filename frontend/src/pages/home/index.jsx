@@ -399,7 +399,7 @@ const Radar = () => {
 const NetworkLines = () => (
   <svg
     style={{
-      position: 'fixed', inset: 0, width: '100%', height: '100%',
+      position: 'absolute', inset: 0, width: '100%', height: '100%',
       pointerEvents: 'none', zIndex: 0, overflow: 'visible',
     }}
     preserveAspectRatio="none"
@@ -410,24 +410,6 @@ const NetworkLines = () => (
         <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
       </filter>
 
-      {/* flow animation — данные бегут по линиям */}
-      <style>{`
-        @keyframes flow {
-          from { stroke-dashoffset: 300; }
-          to   { stroke-dashoffset: 0; }
-        }
-        @keyframes flowSlow {
-          from { stroke-dashoffset: 500; }
-          to   { stroke-dashoffset: 0; }
-        }
-        .line-flow  { stroke-dasharray: 4 18; animation: flow     6.7s linear infinite; }
-        .line-slow  { stroke-dasharray: 3 28; animation: flowSlow 10.5s linear infinite; }
-        .node-pulse { animation: blipPulse 3s ease-in-out infinite; }
-        @keyframes blipPulse {
-          0%,100% { opacity: 0.6; r: 2; }
-          50%     { opacity: 1;   r: 3; }
-        }
-      `}</style>
     </defs>
 
     {/*
