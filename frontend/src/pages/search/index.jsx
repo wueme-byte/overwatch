@@ -89,23 +89,6 @@ export default function Search() {
 
       {/* грид коллекций */}
 
-<div className="flex items-center gap-2" style={{ paddingLeft: 15, paddingTop: 5, paddingBottom: 5 }}>
-          <button
-            onClick={() => { setExiting(true); setTimeout(() => navigate(-1), 300) }}
-            className="w-7 h-7 flex items-center justify-center rounded-full bg-white/[0.06] hover:text-white transition-colors"
-            style={{ color: '#a78bfa', flexShrink: 0 }}
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-              <polyline points="15 18 9 12 15 6"/>
-            </svg>
-          </button>
-          <AnimatedSearch value={filter} onChange={setFilter} />
-        </div>
-
-
-
-
-
       <div className="flex-1 overflow-y-auto px-4 pb-8 relative z-10" style={{ paddingTop: 10 }}>
         {loadingCols ? (
           <div className="flex items-center justify-center py-20 gap-3 text-gray-500 text-sm">
