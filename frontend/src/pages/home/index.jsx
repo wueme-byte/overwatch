@@ -49,13 +49,6 @@ const cards = [
         {/* search results preview */}
         <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}
           viewBox="0 0 240 180" preserveAspectRatio="xMidYMid meet" style={{transform:'scale(0.82)', transformOrigin:'center top'}}>
-          <defs>
-            <filter id="rowGlow">
-              <feGaussianBlur stdDeviation="3" result="blur"/>
-              <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-            </filter>
-          </defs>
-
           {/* card container */}
           <rect x="20" y="12" width="200" height="110" rx="12"
             fill="rgba(15,5,40,0.6)" stroke="rgba(139,92,246,0.15)" strokeWidth="1"/>
@@ -70,13 +63,13 @@ const cards = [
 
           {/* row 1 — highlighted (best match) */}
           <rect x="20" y="38" width="200" height="24" rx="0"
-            fill="rgba(109,40,217,0.2)" filter="url(#rowGlow)">
+            fill="rgba(109,40,217,0.2)">
             <animate attributeName="opacity" values="0.8;1;0.8" dur="2.5s" repeatCount="indefinite"/>
           </rect>
           <rect x="20" y="38" width="200" height="24" rx="0"
             fill="none" stroke="rgba(167,139,250,0.2)" strokeWidth="0"/>
           {/* left dot — active */}
-          <circle cx="32" cy="50" r="3.5" fill="#a78bfa" filter="url(#rowGlow)">
+          <circle cx="32" cy="50" r="3.5" fill="#a78bfa">
             <animate attributeName="opacity" values="1;0.5;1" dur="2.5s" repeatCount="indefinite"/>
           </circle>
           <rect x="42" y="46" width="55" height="5" rx="2.5" fill="rgba(221,214,254,0.8)"/>
