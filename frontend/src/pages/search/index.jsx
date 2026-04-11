@@ -59,7 +59,7 @@ export default function Search() {
           position: 'sticky',
           top: 0,
           zIndex: 20,
-          paddingTop: 10,
+          paddingTop: 30,
           paddingBottom: 5,
           background: 'linear-gradient(180deg, rgba(88,28,220,0.18) 0%, rgba(60,10,160,0.08) 100%)',
           backdropFilter: 'blur(12px)',
