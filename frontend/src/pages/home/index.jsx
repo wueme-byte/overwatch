@@ -385,11 +385,6 @@ const NetworkLines = () => (
     preserveAspectRatio="none"
   >
     <defs>
-      <filter id="lineGlow">
-        <feGaussianBlur stdDeviation="1.5" result="blur"/>
-        <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-      </filter>
-
     </defs>
 
     {/*
@@ -402,47 +397,47 @@ const NetworkLines = () => (
 
     {/* origin точка — центр радара */}
     {/* ↖ верхний левый */}
-    <line x1="50%" y1="17%" x2="-5%"  y2="-2%"  stroke="rgba(139,92,246,0.18)" strokeWidth="0.7" filter="url(#lineGlow)"/>
+    <line x1="50%" y1="17%" x2="-5%"  y2="-2%"  stroke="rgba(139,92,246,0.18)" strokeWidth="0.7"/>
     <line x1="50%" y1="17%" x2="-5%"  y2="-2%"  stroke="rgba(167,139,250,0.4)" strokeWidth="0.7" className="line-flow"/>
     {/* node */}
-    <circle cx="20%" cy="8%" r="2" fill="#7c3aed" opacity="0.5" className="node-pulse" filter="url(#lineGlow)"/>
+    <circle cx="20%" cy="8%" r="2" fill="#7c3aed" opacity="0.5" className="node-pulse"/>
     {/* ветка от node */}
     <line x1="20%" y1="8%" x2="-8%" y2="18%" stroke="rgba(139,92,246,0.1)" strokeWidth="0.5"/>
     <line x1="20%" y1="8%" x2="-8%" y2="18%" stroke="rgba(167,139,250,0.3)" strokeWidth="0.5" className="line-slow"/>
 
     {/* ↗ верхний правый */}
-    <line x1="50%" y1="17%" x2="108%" y2="-3%"  stroke="rgba(139,92,246,0.15)" strokeWidth="0.7" filter="url(#lineGlow)"/>
+    <line x1="50%" y1="17%" x2="108%" y2="-3%"  stroke="rgba(139,92,246,0.15)" strokeWidth="0.7"/>
     <line x1="50%" y1="17%" x2="108%" y2="-3%"  stroke="rgba(167,139,250,0.35)" strokeWidth="0.7" className="line-flow" style={{animationDelay:'0.6s'}}/>
-    <circle cx="80%" cy="6%" r="1.8" fill="#a78bfa" opacity="0.5" className="node-pulse" filter="url(#lineGlow)" style={{animationDelay:'1s'}}/>
+    <circle cx="80%" cy="6%" r="1.8" fill="#a78bfa" opacity="0.5" className="node-pulse" style={{animationDelay:'1s'}}/>
     <line x1="80%" y1="6%" x2="110%" y2="14%" stroke="rgba(139,92,246,0.1)" strokeWidth="0.5"/>
     <line x1="80%" y1="6%" x2="110%" y2="14%" stroke="rgba(167,139,250,0.25)" strokeWidth="0.5" className="line-slow" style={{animationDelay:'1.2s'}}/>
 
     {/* ← левый */}
-    <line x1="50%" y1="17%" x2="-5%"  y2="30%"  stroke="rgba(139,92,246,0.12)" strokeWidth="0.6" filter="url(#lineGlow)"/>
+    <line x1="50%" y1="17%" x2="-5%"  y2="30%"  stroke="rgba(139,92,246,0.12)" strokeWidth="0.6"/>
     <line x1="50%" y1="17%" x2="-5%"  y2="30%"  stroke="rgba(167,139,250,0.3)" strokeWidth="0.6" className="line-slow" style={{animationDelay:'0.3s'}}/>
-    <circle cx="14%" cy="26%" r="1.6" fill="#7c3aed" opacity="0.4" className="node-pulse" filter="url(#lineGlow)" style={{animationDelay:'0.5s'}}/>
+    <circle cx="14%" cy="26%" r="1.6" fill="#7c3aed" opacity="0.4" className="node-pulse" style={{animationDelay:'0.5s'}}/>
     <line x1="14%" y1="26%" x2="-6%" y2="42%" stroke="rgba(139,92,246,0.08)" strokeWidth="0.5"/>
 
     {/* → правый */}
-    <line x1="50%" y1="17%" x2="108%" y2="28%"  stroke="rgba(139,92,246,0.12)" strokeWidth="0.6" filter="url(#lineGlow)"/>
+    <line x1="50%" y1="17%" x2="108%" y2="28%"  stroke="rgba(139,92,246,0.12)" strokeWidth="0.6"/>
     <line x1="50%" y1="17%" x2="108%" y2="28%"  stroke="rgba(167,139,250,0.28)" strokeWidth="0.6" className="line-flow" style={{animationDelay:'1.4s'}}/>
-    <circle cx="87%" cy="25%" r="1.8" fill="#a78bfa" opacity="0.45" className="node-pulse" filter="url(#lineGlow)" style={{animationDelay:'0.8s'}}/>
+    <circle cx="87%" cy="25%" r="1.8" fill="#a78bfa" opacity="0.45" className="node-pulse" style={{animationDelay:'0.8s'}}/>
 
     {/* ↙ нижний левый */}
-    <line x1="50%" y1="17%" x2="-5%"  y2="75%"  stroke="rgba(139,92,246,0.1)" strokeWidth="0.6" filter="url(#lineGlow)"/>
+    <line x1="50%" y1="17%" x2="-5%"  y2="75%"  stroke="rgba(139,92,246,0.1)" strokeWidth="0.6"/>
     <line x1="50%" y1="17%" x2="-5%"  y2="75%"  stroke="rgba(167,139,250,0.22)" strokeWidth="0.6" className="line-slow" style={{animationDelay:'0.9s'}}/>
-    <circle cx="22%" cy="52%" r="1.6" fill="#7c3aed" opacity="0.35" className="node-pulse" filter="url(#lineGlow)" style={{animationDelay:'1.5s'}}/>
+    <circle cx="22%" cy="52%" r="1.6" fill="#7c3aed" opacity="0.35" className="node-pulse" style={{animationDelay:'1.5s'}}/>
     <line x1="22%" y1="52%" x2="-6%" y2="60%" stroke="rgba(139,92,246,0.07)" strokeWidth="0.4"/>
 
     {/* ↘ нижний правый */}
-    <line x1="50%" y1="17%" x2="108%" y2="72%"  stroke="rgba(139,92,246,0.1)" strokeWidth="0.6" filter="url(#lineGlow)"/>
+    <line x1="50%" y1="17%" x2="108%" y2="72%"  stroke="rgba(139,92,246,0.1)" strokeWidth="0.6"/>
     <line x1="50%" y1="17%" x2="108%" y2="72%"  stroke="rgba(167,139,250,0.2)" strokeWidth="0.6" className="line-slow" style={{animationDelay:'0.4s'}}/>
-    <circle cx="78%" cy="50%" r="1.5" fill="#a78bfa" opacity="0.3" className="node-pulse" filter="url(#lineGlow)" style={{animationDelay:'2s'}}/>
+    <circle cx="78%" cy="50%" r="1.5" fill="#a78bfa" opacity="0.3" className="node-pulse" style={{animationDelay:'2s'}}/>
 
     {/* прямо вниз */}
-    <line x1="50%" y1="17%" x2="50%"  y2="105%" stroke="rgba(139,92,246,0.1)" strokeWidth="0.6" filter="url(#lineGlow)"/>
+    <line x1="50%" y1="17%" x2="50%"  y2="105%" stroke="rgba(139,92,246,0.1)" strokeWidth="0.6"/>
     <line x1="50%" y1="17%" x2="50%"  y2="105%" stroke="rgba(167,139,250,0.2)" strokeWidth="0.6" className="line-flow" style={{animationDelay:'1.8s'}}/>
-    <circle cx="50%" cy="60%" r="1.5" fill="#7c3aed" opacity="0.25" className="node-pulse" filter="url(#lineGlow)" style={{animationDelay:'1.1s'}}/>
+    <circle cx="50%" cy="60%" r="1.5" fill="#7c3aed" opacity="0.25" className="node-pulse" style={{animationDelay:'1.1s'}}/>
   </svg>
 )
 
