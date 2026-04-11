@@ -545,7 +545,7 @@ export default function Home() {
   }
 
   return (
-    <div style={{ background: '#080808', height: vh, display: 'flex', flexDirection: 'column', position: 'relative', overflow: 'hidden' }}>
+    <div style={{ background: '#080808', minHeight: vh, display: 'flex', flexDirection: 'column', position: 'relative', overflowX: 'hidden' }}>
 
         <NetworkLines/>
 
