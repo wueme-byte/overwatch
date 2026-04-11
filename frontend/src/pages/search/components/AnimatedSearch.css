@@ -22,7 +22,7 @@
 
 /* ── Контейнер в раскрытом состоянии (строка поиска) ── */
 .as-container.as-expanded {
-  width: 85%;                              /* длина строки поиска */
+  width: 88%;                              /* длина строки поиска */
   border-radius: 9999px;                  /* форма таблетки */
   justify-content: flex-start;            /* контент прижат влево */
   padding: 0 12px 0 6px;
