@@ -63,7 +63,7 @@ export default function CollectionListings({ col, onBack }) {
   )
 
   return (
-    <div style={{ background: '#080808', height: '100svh', display: 'flex', flexDirection: 'column', position: 'relative', paddingTop: 'env(safe-area-inset-top)' }}>
+    <div style={{ background: '#080808', height: '100svh', display: 'flex', flexDirection: 'column', position: 'relative' }}>
       {BG}
 
       {/* шапка */}
