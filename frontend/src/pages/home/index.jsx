@@ -544,7 +544,7 @@ export default function Home() {
         }}/>
 
         {/* ── hero ── */}
-        <div style={{ padding: '40px 24px 0', display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative', zIndex: 1 }}>
+        <div style={{ padding: '60px 24px 0', display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative', zIndex: 1 }}>
 
           <Radar/>
 
@@ -570,9 +570,9 @@ export default function Home() {
         <div style={{ height: 1, background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.06), transparent)', margin: '28px 24px' }}/>
 
         {/* ── 3D carousel + dots ── */}
-        <div style={{ position: 'relative', zIndex: 1, height: 380 }}>
+        <div style={{ position: 'relative', zIndex: 1, height: 370 }}>
           <div ref={carouselRef} style={{
-            position: 'absolute', top: 0, left: 0, right: 0, height: 380, paddingTop: 30,
+            position: 'absolute', top: -30, left: 0, right: 0, height: 350, paddingTop: 10,
             perspective: '1000px', perspectiveOrigin: '50% 50%',
             overflow: 'hidden', touchAction: 'none',
           }}
