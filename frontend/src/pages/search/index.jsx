@@ -59,7 +59,7 @@ export default function Search() {
           position: 'sticky',
           top: 0,
           zIndex: 20,
-          paddingTop: 30,
+          paddingTop: 13,
           paddingBottom: 5,
           background: 'linear-gradient(180deg, rgba(88,28,220,0.18) 0%, rgba(60,10,160,0.08) 100%)',
           backdropFilter: 'blur(12px)',
@@ -89,7 +89,7 @@ export default function Search() {
 
       {/* грид коллекций */}
 
-<div className="flex items-center gap-2" style={{ paddingLeft: 15 }}>
+<div className="flex items-center gap-2" style={{ paddingLeft: 15, paddingTop: 10 }}>
           <button
             onClick={() => { setExiting(true); setTimeout(() => navigate(-1), 300) }}
             className="w-7 h-7 flex items-center justify-center rounded-full bg-white/[0.06] hover:text-white transition-colors"
