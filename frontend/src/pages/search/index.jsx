@@ -68,7 +68,7 @@ export default function Search() {
       >
         <div className="flex items-center" style={{ marginBottom: 40, paddingLeft: 15 }}>
           <h1 style={{
-            position: 'relative', left: 90, top: 44,
+            position: 'relative', left: 90, top: 54,
             fontSize: 26,
             fontWeight: 800,
             letterSpacing: '-0.5px',
@@ -80,7 +80,7 @@ export default function Search() {
           }}>Gifts</h1>
           {!loadingCols && (
             <span style={{
-              position: 'relative', left: 100, top: 45,
+              position: 'relative', left: 100, top: 55,
               fontSize: 11,
               fontWeight: 500,
               color: '#a78bfa',
