@@ -71,13 +71,19 @@ export default function CollectionListings({ col, onBack }) {
   // загружаем модели и Fragment-имена один раз
   useEffect(() => {
     setFragmentNames(null)
+    // модели из общего списка
     fetchListings({ collection: col.name, page: 1, pageSize: 500 })
       .then(data => {
         const unique = [...new Set(data.items.map(i => i.model).filter(Boolean))].sort()
         setModels(unique)
-        const names = new Set(data.items.filter(i => i.marketplace === 'Fragment').map(i => i.name))
+      })
+    // Fragment-имена — отдельный запрос только по Fragment
+    fetchListings({ collection: col.name, page: 1, pageSize: 500, marketplace: 'Fragment' })
+      .then(data => {
+        const names = new Set(data.items.map(i => i.name))
         setFragmentNames(names)
       })
+      .catch(() => setFragmentNames(new Set()))
   }, [col.name])
 
   // грузим items только когда fragmentNames готов

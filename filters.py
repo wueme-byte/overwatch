@@ -7,8 +7,13 @@ def apply_filters(
     min_ton: float | None,
     max_ton: float | None,
     attrs: dict,
+    marketplace: str | None = None,
 ) -> list[NFTListing]:
     result = listings
+
+    if marketplace:
+        marketplace_lower = marketplace.lower()
+        result = [l for l in result if l.marketplace.value.lower() == marketplace_lower]
 
     if model:
         model_lower = model.lower()
