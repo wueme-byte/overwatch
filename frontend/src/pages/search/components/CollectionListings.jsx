@@ -20,27 +20,35 @@ function CollectionAvatar({ col }) {
   )
 }
 
+const PAGE_SIZE = 15
+
 export default function CollectionListings({ col, onBack }) {
-  const [allItems, setAllItems]         = useState(null)
+  const [items, setItems]               = useState(null)
+  const [total, setTotal]               = useState(0)
+  const [page, setPage]                 = useState(1)
   const [modelFilter, setModelFilter]   = useState(null)
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const [loading, setLoading]           = useState(true)
   const [error, setError]               = useState(null)
 
-  const models = allItems
-    ? [...new Set(allItems.map(i => i.model).filter(Boolean))].sort()
-    : []
-
-  const items = allItems
-    ? (modelFilter ? allItems.filter(i => i.model === modelFilter) : allItems)
-    : null
+  const totalPages = Math.ceil(total / PAGE_SIZE)
 
   useEffect(() => {
-    fetchListings({ collection: col.name, page: 1, pageSize: 500 })
-      .then(data => setAllItems(data.items))
+    setLoading(true)
+    setError(null)
+    fetchListings({ collection: col.name, page, pageSize: PAGE_SIZE, model: modelFilter || undefined })
+      .then(data => { setItems(data.items); setTotal(data.total) })
       .catch(e => setError(e.message))
       .finally(() => setLoading(false))
-  }, [col.name])
+  }, [col.name, page, modelFilter])
+
+  function handleModelFilter(m) {
+    setModelFilter(m)
+    setPage(1)
+    setDropdownOpen(false)
+  }
+
+  const models = []
 
   const BG = (
     <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', overflow: 'hidden', zIndex: 0 }}>
@@ -113,7 +121,7 @@ export default function CollectionListings({ col, onBack }) {
             backdropFilter: 'blur(20px)',
           }}>
             <button
-              onClick={() => { setModelFilter(null); setDropdownOpen(false) }}
+              onClick={() => handleModelFilter(null)}
               className="w-full text-left px-4 py-3 text-sm"
               style={{
                 color: !modelFilter ? '#a78bfa' : 'rgba(255,255,255,0.6)',
@@ -125,7 +133,7 @@ export default function CollectionListings({ col, onBack }) {
             {models.map((m, i) => (
               <button
                 key={m}
-                onClick={() => { setModelFilter(m); setDropdownOpen(false) }}
+                onClick={() => handleModelFilter(m)}
                 className="w-full text-left px-4 py-3 text-sm capitalize"
                 style={{
                   color: modelFilter === m ? '#a78bfa' : 'rgba(255,255,255,0.6)',
@@ -158,7 +166,7 @@ export default function CollectionListings({ col, onBack }) {
         {items && (
           <>
             <p className="text-gray-600 text-xs px-1 pb-1">
-              {items.length} listing{items.length !== 1 ? 's' : ''}
+              {total} listing{total !== 1 ? 's' : ''}
               {modelFilter && <span className="ml-1 text-purple-400">· {modelFilter}</span>}
             </p>
 
@@ -168,6 +176,48 @@ export default function CollectionListings({ col, onBack }) {
               </div>
             ) : (
               items.map((item, i) => <ListingCard key={i} item={item} />)
+            )}
+
+            {totalPages > 1 && (
+              <div className="flex items-center justify-center gap-4 pt-2 pb-2">
+                <button
+                  onClick={() => setPage(p => Math.max(1, p - 1))}
+                  disabled={page === 1}
+                  style={{
+                    width: 36, height: 36, borderRadius: '50%',
+                    background: 'rgba(255,255,255,0.06)',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    color: page === 1 ? 'rgba(255,255,255,0.2)' : '#a78bfa',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    cursor: page === 1 ? 'default' : 'pointer',
+                  }}
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                    <polyline points="15 18 9 12 15 6"/>
+                  </svg>
+                </button>
+
+                <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13 }}>
+                  {page} / {totalPages}
+                </span>
+
+                <button
+                  onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                  disabled={page === totalPages}
+                  style={{
+                    width: 36, height: 36, borderRadius: '50%',
+                    background: 'rgba(255,255,255,0.06)',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    color: page === totalPages ? 'rgba(255,255,255,0.2)' : '#a78bfa',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    cursor: page === totalPages ? 'default' : 'pointer',
+                  }}
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                    <polyline points="9 18 15 12 9 6"/>
+                  </svg>
+                </button>
+              </div>
             )}
           </>
         )}
