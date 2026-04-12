@@ -2,7 +2,7 @@ import json
 import asyncio
 from pathlib import Path
 from html import escape
-from telegram import Update
+from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton, WebAppInfo
 from telegram.ext import ContextTypes
 from telegram.constants import ParseMode
 from redis.asyncio import Redis
@@ -82,6 +82,12 @@ def make_handlers(redis: Redis):
     orchestrator = NFTOrchestrator(redis)
 
     async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+        keyboard = InlineKeyboardMarkup([[
+            InlineKeyboardButton(
+                "Открыть Mini App",
+                web_app=WebAppInfo(url="https://wueme-byte.github.io/overwatch/")
+            )
+        ]])
         await update.message.reply_text(
             "<b>Overwatch</b>\n\n"
             "<b>Поиск по коллекции:</b>\n"
@@ -97,6 +103,7 @@ def make_handlers(redis: Redis):
             "/theme btc\n"
             "/theme america",
             parse_mode=ParseMode.HTML,
+            reply_markup=keyboard,
         )
 
     async def cmd_collection(update: Update, context: ContextTypes.DEFAULT_TYPE):
