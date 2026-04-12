@@ -19,6 +19,7 @@ class Settings:
     FRAGMENT_STEL_DT: str = os.getenv("FRAGMENT_STEL_DT", "")
     FRAGMENT_STEL_TOKEN: str = os.getenv("FRAGMENT_STEL_TOKEN", "")
     FRAGMENT_STEL_TON_TOKEN: str = os.getenv("FRAGMENT_STEL_TON_TOKEN", "")
+    FRAGMENT_PROXY: str = os.getenv("FRAGMENT_PROXY", "")
 
 
 settings = Settings()
