@@ -26,12 +26,22 @@ export default function CollectionListings({ col, onBack }) {
   const [items, setItems]               = useState(null)
   const [total, setTotal]               = useState(0)
   const [page, setPage]                 = useState(1)
+  const [models, setModels]             = useState([])
   const [modelFilter, setModelFilter]   = useState(null)
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const [loading, setLoading]           = useState(true)
   const [error, setError]               = useState(null)
 
   const totalPages = Math.ceil(total / PAGE_SIZE)
+
+  // один раз грузим все модели для дропдауна
+  useEffect(() => {
+    fetchListings({ collection: col.name, page: 1, pageSize: 500 })
+      .then(data => {
+        const unique = [...new Set(data.items.map(i => i.model).filter(Boolean))].sort()
+        setModels(unique)
+      })
+  }, [col.name])
 
   useEffect(() => {
     setLoading(true)
@@ -47,8 +57,6 @@ export default function CollectionListings({ col, onBack }) {
     setPage(1)
     setDropdownOpen(false)
   }
-
-  const models = []
 
   const BG = (
     <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', overflow: 'hidden', zIndex: 0 }}>
