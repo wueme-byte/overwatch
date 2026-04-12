@@ -59,6 +59,7 @@ export default function CollectionListings({ col, onBack }) {
   const [total, setTotal]             = useState(0)
   const [page, setPage]               = useState(1)
   const [models, setModels]           = useState([])
+  const [fragmentNames, setFragmentNames] = useState(new Set())
   const [modelFilter, setModelFilter] = useState(null)
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const [loading, setLoading]         = useState(true)
@@ -72,6 +73,9 @@ export default function CollectionListings({ col, onBack }) {
       .then(data => {
         const unique = [...new Set(data.items.map(i => i.model).filter(Boolean))].sort()
         setModels(unique)
+        // запоминаем все имена которые есть на Fragment
+        const names = new Set(data.items.filter(i => i.marketplace === 'Fragment').map(i => i.name))
+        setFragmentNames(names)
       })
   }, [col.name])
 
@@ -80,15 +84,11 @@ export default function CollectionListings({ col, onBack }) {
     setError(null)
     fetchListings({ collection: col.name, page, pageSize: PAGE_SIZE, model: modelFilter || undefined })
       .then(data => {
-        // если одинаковый подарок на обоих маркетах — оставляем Fragment
-        const map = new Map()
-        for (const item of data.items) {
-          const existing = map.get(item.name)
-          if (!existing || item.marketplace === 'Fragment') {
-            map.set(item.name, item)
-          }
-        }
-        setItems([...map.values()])
+        // скрываем GetGems если есть Fragment версия этого подарка
+        const filtered = data.items.filter(item =>
+          item.marketplace === 'Fragment' || !fragmentNames.has(item.name)
+        )
+        setItems(filtered)
         setTotal(data.total)
       })
       .catch(e => setError(e.message))
