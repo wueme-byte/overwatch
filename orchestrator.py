@@ -1,3 +1,4 @@
+import os
 import asyncio
 import json
 import aiohttp
@@ -6,6 +7,9 @@ from redis.asyncio import Redis
 from fetchers import GetGemsClient, FragmentClient
 from models import NFTListing, Marketplace
 from config.settings import settings, get_fragment_cookies
+
+if settings.FRAGMENT_PROXY:
+    os.environ.setdefault("HTTPS_PROXY", settings.FRAGMENT_PROXY)
 
 CACHE_TTL = settings.CACHE_TTL
 TON_PRICE_FALLBACK = Decimal("3.0")
