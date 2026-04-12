@@ -16,7 +16,7 @@ export default function ListingCard({ item }) {
 
       {/* right: price + marketplace */}
       <div className="flex flex-col items-end shrink-0 gap-1">
-        <p className="text-sm font-semibold text-sky-300">{item.price_ton} TON</p>
+        <p className="text-sm font-semibold text-sky-300">{Number(item.price_ton).toFixed(2)} TON</p>
         <span
           className="text-[10px] px-1.5 py-0.5 rounded-full font-medium"
           style={{
