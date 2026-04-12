@@ -92,6 +92,18 @@
 .as-handle {
   stroke-dasharray: 7.78;
   stroke-dashoffset: 0;
+  transition: stroke-dashoffset 200ms ease;
+}
+
+.as-animating .as-handle {
+  animation: handleHide 240ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  transition: none;
+}
+
+/* скрыта пока бар открыт */
+.as-expanded .as-handle {
+  stroke-dashoffset: 7.78;
+  transition: none;
 }
 
 @keyframes handleHide {
