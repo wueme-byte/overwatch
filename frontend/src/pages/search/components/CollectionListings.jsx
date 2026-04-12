@@ -141,7 +141,7 @@ export default function CollectionListings({ col, onBack }) {
               fontSize: 18,
               fontWeight: 800,
               letterSpacing: '-0.4px',
-              lineHeight: 1,
+              lineHeight: 1.3,
               textTransform: 'capitalize',
               margin: 0,
               background: 'linear-gradient(135deg, #ffffff 30%, #a78bfa 100%)',
