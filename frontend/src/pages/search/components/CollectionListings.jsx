@@ -13,7 +13,7 @@ function CollectionAvatar({ col }) {
           src={col.image}
           alt={col.name}
           onError={() => setImgOk(false)}
-          style={{ width: 44, height: 44, borderRadius: 12, objectFit: 'cover', display: 'block' }}
+          style={{ width: 94, height: 44, borderRadius: 12, objectFit: 'cover', display: 'block' }}
         />
       ) : (
         <div style={{
