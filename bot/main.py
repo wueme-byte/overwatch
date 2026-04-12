@@ -35,3 +35,7 @@ async def run():
     await app.updater.stop()
     await app.stop()
     await app.shutdown()
+
+
+if __name__ == "__main__":
+    asyncio.run(run())
