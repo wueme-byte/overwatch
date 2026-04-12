@@ -57,7 +57,6 @@ async def get_listings(
     model: str | None = Query(None),
     min_ton: float | None = Query(None),
     max_ton: float | None = Query(None),
-    marketplace: str | None = Query(None),
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=500),
 ):
@@ -68,7 +67,7 @@ async def get_listings(
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-    filtered = apply_filters(listings, model, min_ton, max_ton, attrs={}, marketplace=marketplace)
+    filtered = apply_filters(listings, model, min_ton, max_ton, attrs={})
 
     total = len(filtered)
     start = (page - 1) * page_size

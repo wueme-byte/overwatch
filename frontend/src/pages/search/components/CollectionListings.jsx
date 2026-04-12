@@ -59,7 +59,6 @@ export default function CollectionListings({ col, onBack }) {
   const [total, setTotal]             = useState(0)
   const [page, setPage]               = useState(1)
   const [models, setModels]           = useState([])
-  const [fragmentNames, setFragmentNames] = useState(null) // null = ещё не загружены
   const [modelFilter, setModelFilter] = useState(null)
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const [loading, setLoading]         = useState(true)
@@ -68,41 +67,26 @@ export default function CollectionListings({ col, onBack }) {
 
   const totalPages = Math.ceil(total / PAGE_SIZE)
 
-  // загружаем модели и Fragment-имена один раз
   useEffect(() => {
-    setFragmentNames(null)
-    // модели из общего списка
     fetchListings({ collection: col.name, page: 1, pageSize: 500 })
       .then(data => {
         const unique = [...new Set(data.items.map(i => i.model).filter(Boolean))].sort()
         setModels(unique)
       })
-    // Fragment-имена — отдельный запрос только по Fragment
-    fetchListings({ collection: col.name, page: 1, pageSize: 500, marketplace: 'Fragment' })
-      .then(data => {
-        const names = new Set(data.items.map(i => i.name))
-        setFragmentNames(names)
-      })
-      .catch(() => setFragmentNames(new Set()))
   }, [col.name])
 
-  // грузим items только когда fragmentNames готов
   useEffect(() => {
-    if (fragmentNames === null) return
     setLoading(true)
     setError(null)
     fetchListings({ collection: col.name, page, pageSize: PAGE_SIZE, model: modelFilter || undefined })
       .then(data => {
-        const filtered = data.items.filter(item =>
-          item.marketplace === 'Fragment' || !fragmentNames.has(item.name)
-        )
-        setItems(filtered)
+        setItems(data.items)
         setTotal(data.total)
       })
       .catch(e => setError(e.message))
       .finally(() => setLoading(false))
     scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' })
-  }, [col.name, page, modelFilter, fragmentNames])
+  }, [col.name, page, modelFilter])
 
   function handleModelFilter(m) {
     setModelFilter(m)
