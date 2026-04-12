@@ -79,7 +79,18 @@ export default function CollectionListings({ col, onBack }) {
     setLoading(true)
     setError(null)
     fetchListings({ collection: col.name, page, pageSize: PAGE_SIZE, model: modelFilter || undefined })
-      .then(data => { setItems(data.items); setTotal(data.total) })
+      .then(data => {
+        // если одинаковый подарок на обоих маркетах — оставляем Fragment
+        const map = new Map()
+        for (const item of data.items) {
+          const existing = map.get(item.name)
+          if (!existing || item.marketplace === 'Fragment') {
+            map.set(item.name, item)
+          }
+        }
+        setItems([...map.values()])
+        setTotal(data.total)
+      })
       .catch(e => setError(e.message))
       .finally(() => setLoading(false))
     scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' })
