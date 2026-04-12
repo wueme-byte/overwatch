@@ -136,15 +136,36 @@ export default function CollectionListings({ col, onBack }) {
           <CollectionAvatar col={col} />
 
           {/* название + счётчик */}
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <h1 style={{ fontSize: 15, fontWeight: 700, color: '#ffffff', textTransform: 'capitalize', margin: 0, lineHeight: 1.2 }}>
+          <div style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+            <h1 style={{
+              fontSize: 18,
+              fontWeight: 800,
+              letterSpacing: '-0.4px',
+              lineHeight: 1,
+              textTransform: 'capitalize',
+              margin: 0,
+              background: 'linear-gradient(135deg, #ffffff 30%, #a78bfa 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+            }}>
               {col.name}
             </h1>
             {total > 0 && (
-              <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', marginTop: 2 }}>
+              <span style={{
+                fontSize: 11,
+                fontWeight: 500,
+                color: '#a78bfa',
+                background: 'rgba(139,92,246,0.12)',
+                border: '1px solid rgba(139,92,246,0.25)',
+                borderRadius: 999,
+                padding: '3px 10px',
+                letterSpacing: '0.2px',
+                whiteSpace: 'nowrap',
+                flexShrink: 0,
+              }}>
                 {total} listing{total !== 1 ? 's' : ''}
-                {modelFilter && <span style={{ color: '#a78bfa', marginLeft: 4 }}>· {modelFilter}</span>}
-              </p>
+                {modelFilter && <span style={{ opacity: 0.7, marginLeft: 4 }}>· {modelFilter}</span>}
+              </span>
             )}
           </div>
 
