@@ -122,8 +122,8 @@ export default function CollectionListings({ col, onBack }) {
             onClick={onBack}
             style={{
               width: 32, height: 32, borderRadius: '50%', flexShrink: 0,
-              background: 'rgba(255,255,255,0.06)',
-              border: '1px solid rgba(255,255,255,0.1)',
+              background: 'rgba(139,92,246,0.12)',
+              border: '1px solid rgba(139,92,246,0.25)',
               color: '#a78bfa', display: 'flex', alignItems: 'center', justifyContent: 'center',
               cursor: 'pointer',
             }}
@@ -176,9 +176,9 @@ export default function CollectionListings({ col, onBack }) {
               style={{
                 display: 'flex', alignItems: 'center', gap: 6,
                 padding: '6px 12px', borderRadius: 999, flexShrink: 0,
-                background: modelFilter ? 'rgba(139,92,246,0.2)' : 'rgba(255,255,255,0.06)',
-                border: `1px solid ${modelFilter ? 'rgba(139,92,246,0.45)' : 'rgba(255,255,255,0.1)'}`,
-                color: modelFilter ? '#a78bfa' : 'rgba(255,255,255,0.45)',
+                background: modelFilter ? 'rgba(139,92,246,0.2)' : 'rgba(139,92,246,0.12)',
+                border: `1px solid ${modelFilter ? 'rgba(139,92,246,0.45)' : 'rgba(139,92,246,0.25)'}`,
+                color: '#a78bfa',
                 fontSize: 12, fontWeight: 500, cursor: 'pointer',
               }}
             >
