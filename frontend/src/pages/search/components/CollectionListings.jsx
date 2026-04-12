@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import { fetchListings } from '../../../api/listings'
 import ListingCard from './ListingCard'
 
@@ -55,7 +55,7 @@ const BG = (
 )
 
 export default function CollectionListings({ col, onBack }) {
-  const [items, setItems]             = useState(null)
+  const [rawItems, setRawItems]       = useState(null)
   const [total, setTotal]             = useState(0)
   const [page, setPage]               = useState(1)
   const [models, setModels]           = useState([])
@@ -67,6 +67,14 @@ export default function CollectionListings({ col, onBack }) {
   const scrollRef                     = useRef(null)
 
   const totalPages = Math.ceil(total / PAGE_SIZE)
+
+  // реактивная фильтрация: пересчитывается когда fragmentNames загрузятся
+  const items = useMemo(() => {
+    if (!rawItems) return null
+    return rawItems.filter(item =>
+      item.marketplace === 'Fragment' || !fragmentNames.has(item.name)
+    )
+  }, [rawItems, fragmentNames])
 
   useEffect(() => {
     fetchListings({ collection: col.name, page: 1, pageSize: 500 })
@@ -84,11 +92,7 @@ export default function CollectionListings({ col, onBack }) {
     setError(null)
     fetchListings({ collection: col.name, page, pageSize: PAGE_SIZE, model: modelFilter || undefined })
       .then(data => {
-        // скрываем GetGems если есть Fragment версия этого подарка
-        const filtered = data.items.filter(item =>
-          item.marketplace === 'Fragment' || !fragmentNames.has(item.name)
-        )
-        setItems(filtered)
+        setRawItems(data.items)
         setTotal(data.total)
       })
       .catch(e => setError(e.message))
