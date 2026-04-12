@@ -20,7 +20,7 @@
   position: absolute;
   inset: 0;
   border-radius: 9999px;
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(54, 35, 87);
   border: 1px solid rgba(255, 255, 255, 0.18);
   clip-path: circle(8px at 23px 18px);
   transition: clip-path 380ms cubic-bezier(0.22, 1, 0.36, 1);
