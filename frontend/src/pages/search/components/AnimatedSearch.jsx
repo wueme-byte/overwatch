@@ -47,7 +47,7 @@ export default function AnimatedSearch({ value, onChange }) {
           d="M15.5 15.5 L21 21"
           fill="none"
           stroke="currentColor"
-          strokeWidth="2.2"
+          strokeWidth="2.0"
           strokeLinecap="round"
           className="as-handle"
         />
