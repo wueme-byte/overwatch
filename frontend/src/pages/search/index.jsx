@@ -80,7 +80,7 @@ export default function Search() {
           }}>Gifts</h1>
           {!loadingCols && (
             <span style={{
-              position: 'relative', left: 100, top: 55,
+              position: 'relative', left: 100, top: 54,
               fontSize: 11,
               fontWeight: 500,
               color: '#a78bfa',
