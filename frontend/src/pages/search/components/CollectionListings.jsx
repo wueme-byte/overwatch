@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { fetchListings } from '../../../api/listings'
 import ListingCard from './ListingCard'
 
@@ -55,11 +55,11 @@ const BG = (
 )
 
 export default function CollectionListings({ col, onBack }) {
-  const [rawItems, setRawItems]       = useState(null)
+  const [items, setItems]             = useState(null)
   const [total, setTotal]             = useState(0)
   const [page, setPage]               = useState(1)
   const [models, setModels]           = useState([])
-  const [fragmentNames, setFragmentNames] = useState(new Set())
+  const [fragmentNames, setFragmentNames] = useState(null) // null = ещё не загружены
   const [modelFilter, setModelFilter] = useState(null)
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const [loading, setLoading]         = useState(true)
@@ -68,37 +68,35 @@ export default function CollectionListings({ col, onBack }) {
 
   const totalPages = Math.ceil(total / PAGE_SIZE)
 
-  // реактивная фильтрация: пересчитывается когда fragmentNames загрузятся
-  const items = useMemo(() => {
-    if (!rawItems) return null
-    return rawItems.filter(item =>
-      item.marketplace === 'Fragment' || !fragmentNames.has(item.name)
-    )
-  }, [rawItems, fragmentNames])
-
+  // загружаем модели и Fragment-имена один раз
   useEffect(() => {
+    setFragmentNames(null)
     fetchListings({ collection: col.name, page: 1, pageSize: 500 })
       .then(data => {
         const unique = [...new Set(data.items.map(i => i.model).filter(Boolean))].sort()
         setModels(unique)
-        // запоминаем все имена которые есть на Fragment
         const names = new Set(data.items.filter(i => i.marketplace === 'Fragment').map(i => i.name))
         setFragmentNames(names)
       })
   }, [col.name])
 
+  // грузим items только когда fragmentNames готов
   useEffect(() => {
+    if (fragmentNames === null) return
     setLoading(true)
     setError(null)
     fetchListings({ collection: col.name, page, pageSize: PAGE_SIZE, model: modelFilter || undefined })
       .then(data => {
-        setRawItems(data.items)
+        const filtered = data.items.filter(item =>
+          item.marketplace === 'Fragment' || !fragmentNames.has(item.name)
+        )
+        setItems(filtered)
         setTotal(data.total)
       })
       .catch(e => setError(e.message))
       .finally(() => setLoading(false))
     scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' })
-  }, [col.name, page, modelFilter])
+  }, [col.name, page, modelFilter, fragmentNames])
 
   function handleModelFilter(m) {
     setModelFilter(m)
