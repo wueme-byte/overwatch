@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { fetchListings } from '../../../api/listings'
 import ListingCard from './ListingCard'
 
@@ -6,35 +6,67 @@ function CollectionAvatar({ col }) {
   const [imgOk, setImgOk] = useState(!!col.image)
   const initials = col.name.split(' ').slice(0, 2).map(w => w[0]?.toUpperCase()).join('')
 
-  return imgOk ? (
-    <img
-      src={col.image}
-      alt={col.name}
-      className="w-12 h-12 rounded-xl object-cover"
-      onError={() => setImgOk(false)}
-    />
-  ) : (
-    <div className="w-12 h-12 rounded-xl bg-white/[0.08] flex items-center justify-center text-sm font-semibold text-gray-300">
-      {initials}
+  return (
+    <div style={{ position: 'relative', flexShrink: 0 }}>
+      {imgOk ? (
+        <img
+          src={col.image}
+          alt={col.name}
+          onError={() => setImgOk(false)}
+          style={{ width: 44, height: 44, borderRadius: 12, objectFit: 'cover', display: 'block' }}
+        />
+      ) : (
+        <div style={{
+          width: 44, height: 44, borderRadius: 12,
+          background: 'rgba(139,92,246,0.15)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: 14, fontWeight: 700, color: '#a78bfa',
+        }}>{initials}</div>
+      )}
+      <div style={{
+        position: 'absolute', inset: -2, borderRadius: 14,
+        border: '1.5px solid rgba(139,92,246,0.35)',
+        pointerEvents: 'none',
+      }}/>
     </div>
   )
 }
 
 const PAGE_SIZE = 15
 
+const BG = (
+  <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', overflow: 'hidden', zIndex: 0 }}>
+    <div style={{
+      position: 'absolute', top: '-10%', left: '-10%',
+      width: 320, height: 320, borderRadius: '50%',
+      background: 'radial-gradient(circle, rgba(109,40,217,0.18) 0%, transparent 70%)',
+    }}/>
+    <div style={{
+      position: 'absolute', bottom: '5%', right: '-15%',
+      width: 280, height: 280, borderRadius: '50%',
+      background: 'radial-gradient(circle, rgba(3,105,161,0.14) 0%, transparent 70%)',
+    }}/>
+    <div style={{
+      position: 'absolute', inset: 0,
+      backgroundImage: 'radial-gradient(rgba(255,255,255,0.025) 1px, transparent 1px)',
+      backgroundSize: '20px 20px',
+    }}/>
+  </div>
+)
+
 export default function CollectionListings({ col, onBack }) {
-  const [items, setItems]               = useState(null)
-  const [total, setTotal]               = useState(0)
-  const [page, setPage]                 = useState(1)
-  const [models, setModels]             = useState([])
-  const [modelFilter, setModelFilter]   = useState(null)
+  const [items, setItems]             = useState(null)
+  const [total, setTotal]             = useState(0)
+  const [page, setPage]               = useState(1)
+  const [models, setModels]           = useState([])
+  const [modelFilter, setModelFilter] = useState(null)
   const [dropdownOpen, setDropdownOpen] = useState(false)
-  const [loading, setLoading]           = useState(true)
-  const [error, setError]               = useState(null)
+  const [loading, setLoading]         = useState(true)
+  const [error, setError]             = useState(null)
+  const scrollRef                     = useRef(null)
 
   const totalPages = Math.ceil(total / PAGE_SIZE)
 
-  // один раз грузим все модели для дропдауна
   useEffect(() => {
     fetchListings({ collection: col.name, page: 1, pageSize: 500 })
       .then(data => {
@@ -50,6 +82,7 @@ export default function CollectionListings({ col, onBack }) {
       .then(data => { setItems(data.items); setTotal(data.total) })
       .catch(e => setError(e.message))
       .finally(() => setLoading(false))
+    scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' })
   }, [col.name, page, modelFilter])
 
   function handleModelFilter(m) {
@@ -58,83 +91,97 @@ export default function CollectionListings({ col, onBack }) {
     setDropdownOpen(false)
   }
 
-  const BG = (
-    <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', overflow: 'hidden', zIndex: 0 }}>
-      <div className="orb-a" style={{
-        position: 'absolute', top: '-10%', left: '-10%',
-        width: 320, height: 320, borderRadius: '50%',
-        background: 'radial-gradient(circle, rgba(109,40,217,0.18) 0%, transparent 70%)',
-      }}/>
-      <div className="orb-b" style={{
-        position: 'absolute', bottom: '5%', right: '-15%',
-        width: 280, height: 280, borderRadius: '50%',
-        background: 'radial-gradient(circle, rgba(3,105,161,0.14) 0%, transparent 70%)',
-      }}/>
-      <div style={{
-        position: 'absolute', inset: 0,
-        backgroundImage: 'radial-gradient(rgba(255,255,255,0.025) 1px, transparent 1px)',
-        backgroundSize: '20px 20px',
-      }}/>
-    </div>
-  )
-
   return (
-    <div style={{ background: '#080808', height: '100svh', display: 'flex', flexDirection: 'column', position: 'relative' }}>
+    <div style={{ background: '#080808', height: '100svh', display: 'flex', flexDirection: 'column', position: 'relative', overflow: 'hidden' }}>
       {BG}
 
-      {/* шапка */}
-      <div className="flex items-center gap-3 px-4 pt-6 pb-4 relative z-10">
-        <button
-          onClick={onBack}
-          className="w-8 h-8 flex items-center justify-center rounded-full bg-white/[0.06] text-gray-400 hover:text-white transition-colors"
-        >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-            <polyline points="15 18 9 12 15 6"/>
-          </svg>
-        </button>
-        <CollectionAvatar col={col} />
-        <h1 className="text-base font-semibold text-white capitalize">{col.name}</h1>
+      {/* ── шапка ── */}
+      <div style={{
+        position: 'sticky', top: 0, zIndex: 20,
+        padding: '14px 16px 12px',
+        background: 'linear-gradient(180deg, rgba(88,28,220,0.18) 0%, rgba(60,10,160,0.08) 100%)',
+        backdropFilter: 'blur(12px)',
+        borderBottom: '1px solid rgba(139,92,246,0.15)',
+        flexShrink: 0,
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
 
-        {/* кнопка фильтра моделей */}
-        {models.length > 0 && (
+          {/* назад */}
           <button
-            onClick={() => setDropdownOpen(o => !o)}
-            className="ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-xl transition-colors"
+            onClick={onBack}
             style={{
-              background: modelFilter ? 'rgba(139,92,246,0.2)' : 'rgba(255,255,255,0.06)',
-              border: '1px solid',
-              borderColor: modelFilter ? 'rgba(139,92,246,0.5)' : 'rgba(255,255,255,0.1)',
-              color: modelFilter ? '#a78bfa' : 'rgba(255,255,255,0.5)',
-              fontSize: 12,
-              fontWeight: 500,
+              width: 32, height: 32, borderRadius: '50%', flexShrink: 0,
+              background: 'rgba(255,255,255,0.06)',
+              border: '1px solid rgba(255,255,255,0.1)',
+              color: '#a78bfa', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              cursor: 'pointer',
             }}
           >
-            <span>{modelFilter || 'Model'}</span>
-            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-              <polyline points={dropdownOpen ? "18 15 12 9 6 15" : "6 9 12 15 18 9"}/>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+              <polyline points="15 18 9 12 15 6"/>
             </svg>
           </button>
-        )}
-      </div>
 
-      {/* дропдаун со списком моделей */}
-      {dropdownOpen && (
-        <div className="relative z-30 mx-4 mb-2">
+          <CollectionAvatar col={col} />
+
+          {/* название + счётчик */}
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <h1 style={{ fontSize: 15, fontWeight: 700, color: '#ffffff', textTransform: 'capitalize', margin: 0, lineHeight: 1.2 }}>
+              {col.name}
+            </h1>
+            {total > 0 && (
+              <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', marginTop: 2 }}>
+                {total} listing{total !== 1 ? 's' : ''}
+                {modelFilter && <span style={{ color: '#a78bfa', marginLeft: 4 }}>· {modelFilter}</span>}
+              </p>
+            )}
+          </div>
+
+          {/* кнопка фильтра моделей */}
+          {models.length > 0 && (
+            <button
+              onClick={() => setDropdownOpen(o => !o)}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 6,
+                padding: '6px 12px', borderRadius: 999, flexShrink: 0,
+                background: modelFilter ? 'rgba(139,92,246,0.2)' : 'rgba(255,255,255,0.06)',
+                border: `1px solid ${modelFilter ? 'rgba(139,92,246,0.45)' : 'rgba(255,255,255,0.1)'}`,
+                color: modelFilter ? '#a78bfa' : 'rgba(255,255,255,0.45)',
+                fontSize: 12, fontWeight: 500, cursor: 'pointer',
+              }}
+            >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="4" y1="6" x2="20" y2="6"/>
+                <line x1="8" y1="12" x2="16" y2="12"/>
+                <line x1="11" y1="18" x2="13" y2="18"/>
+              </svg>
+              <span>{modelFilter || 'Model'}</span>
+              <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round">
+                <polyline points={dropdownOpen ? '18 15 12 9 6 15' : '6 9 12 15 18 9'}/>
+              </svg>
+            </button>
+          )}
+        </div>
+
+        {/* дропдаун */}
+        {dropdownOpen && (
           <div style={{
-            background: 'rgba(18,8,40,0.97)',
+            position: 'absolute', top: 'calc(100% + 6px)', right: 16, left: 16,
+            zIndex: 30,
+            background: 'rgba(12,5,30,0.97)',
             border: '1px solid rgba(139,92,246,0.2)',
             borderRadius: 16,
-            maxHeight: 280,
+            maxHeight: 260,
             overflowY: 'auto',
-            backdropFilter: 'blur(20px)',
           }}>
             <button
               onClick={() => handleModelFilter(null)}
-              className="w-full text-left px-4 py-3 text-sm"
               style={{
-                color: !modelFilter ? '#a78bfa' : 'rgba(255,255,255,0.6)',
+                width: '100%', textAlign: 'left', padding: '11px 16px', fontSize: 13,
+                color: !modelFilter ? '#a78bfa' : 'rgba(255,255,255,0.55)',
                 background: !modelFilter ? 'rgba(139,92,246,0.1)' : 'transparent',
                 borderBottom: '1px solid rgba(255,255,255,0.05)',
+                cursor: 'pointer',
               }}
             >All models</button>
 
@@ -142,23 +189,28 @@ export default function CollectionListings({ col, onBack }) {
               <button
                 key={m}
                 onClick={() => handleModelFilter(m)}
-                className="w-full text-left px-4 py-3 text-sm capitalize"
                 style={{
-                  color: modelFilter === m ? '#a78bfa' : 'rgba(255,255,255,0.6)',
+                  width: '100%', textAlign: 'left', padding: '11px 16px', fontSize: 13,
+                  textTransform: 'capitalize',
+                  color: modelFilter === m ? '#a78bfa' : 'rgba(255,255,255,0.55)',
                   background: modelFilter === m ? 'rgba(139,92,246,0.1)' : 'transparent',
                   borderBottom: i < models.length - 1 ? '1px solid rgba(255,255,255,0.05)' : 'none',
+                  cursor: 'pointer',
                 }}
               >{m}</button>
             ))}
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
-      {/* список листингов */}
-      <div className="flex-1 px-4 pb-8 flex flex-col gap-2 relative z-10 overflow-y-auto">
+      {/* ── список ── */}
+      <div
+        ref={scrollRef}
+        style={{ flex: 1, overflowY: 'auto', padding: '12px 16px 32px', position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', gap: 8 }}
+      >
         {loading && (
-          <div className="flex items-center justify-center py-20 gap-3 text-gray-500 text-sm">
-            <svg className="animate-spin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '80px 0', gap: 10, color: 'rgba(255,255,255,0.25)', fontSize: 13 }}>
+            <svg style={{ animation: 'spin 1s linear infinite' }} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
               <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
             </svg>
             Loading...
@@ -166,47 +218,46 @@ export default function CollectionListings({ col, onBack }) {
         )}
 
         {error && (
-          <div className="bg-red-500/10 border border-red-500/20 rounded-2xl px-4 py-3 text-red-400 text-sm">
-            {error}
-          </div>
+          <div style={{
+            background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)',
+            borderRadius: 14, padding: '12px 16px', color: '#f87171', fontSize: 13,
+          }}>{error}</div>
         )}
 
-        {items && (
+        {items && !loading && (
           <>
-            <p className="text-gray-600 text-xs px-1 pb-1">
-              {total} listing{total !== 1 ? 's' : ''}
-              {modelFilter && <span className="ml-1 text-purple-400">· {modelFilter}</span>}
-            </p>
-
             {items.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-16 gap-3">
-                <p className="text-gray-600 text-sm">No listings for this model</p>
+              <div style={{ display: 'flex', justifyContent: 'center', padding: '60px 0' }}>
+                <p style={{ color: 'rgba(255,255,255,0.2)', fontSize: 13 }}>No listings found</p>
               </div>
             ) : (
               items.map((item, i) => <ListingCard key={i} item={item} />)
             )}
 
             {totalPages > 1 && (
-              <div className="flex items-center justify-center gap-4 pt-2 pb-2">
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 16, paddingTop: 8 }}>
                 <button
                   onClick={() => setPage(p => Math.max(1, p - 1))}
                   disabled={page === 1}
                   style={{
                     width: 36, height: 36, borderRadius: '50%',
-                    background: 'rgba(255,255,255,0.06)',
-                    border: '1px solid rgba(255,255,255,0.1)',
-                    color: page === 1 ? 'rgba(255,255,255,0.2)' : '#a78bfa',
+                    background: 'rgba(255,255,255,0.05)',
+                    border: '1px solid rgba(255,255,255,0.08)',
+                    color: page === 1 ? 'rgba(255,255,255,0.15)' : '#a78bfa',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     cursor: page === 1 ? 'default' : 'pointer',
+                    transition: 'opacity 150ms',
                   }}
                 >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
                     <polyline points="15 18 9 12 15 6"/>
                   </svg>
                 </button>
 
-                <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13 }}>
-                  {page} / {totalPages}
+                <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.35)', letterSpacing: '0.5px' }}>
+                  <span style={{ color: '#a78bfa', fontWeight: 600 }}>{page}</span>
+                  <span style={{ margin: '0 4px' }}>/</span>
+                  {totalPages}
                 </span>
 
                 <button
@@ -214,14 +265,15 @@ export default function CollectionListings({ col, onBack }) {
                   disabled={page === totalPages}
                   style={{
                     width: 36, height: 36, borderRadius: '50%',
-                    background: 'rgba(255,255,255,0.06)',
-                    border: '1px solid rgba(255,255,255,0.1)',
-                    color: page === totalPages ? 'rgba(255,255,255,0.2)' : '#a78bfa',
+                    background: 'rgba(255,255,255,0.05)',
+                    border: '1px solid rgba(255,255,255,0.08)',
+                    color: page === totalPages ? 'rgba(255,255,255,0.15)' : '#a78bfa',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     cursor: page === totalPages ? 'default' : 'pointer',
+                    transition: 'opacity 150ms',
                   }}
                 >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
                     <polyline points="9 18 15 12 9 6"/>
                   </svg>
                 </button>
@@ -230,6 +282,8 @@ export default function CollectionListings({ col, onBack }) {
           </>
         )}
       </div>
+
+      <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
     </div>
   )
 }
