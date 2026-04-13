@@ -1,4 +1,4 @@
-export default function ListingCard({ item }) {
+export default function ListingCard({ item, isBest }) {
   const isFragment = item.marketplace === 'Fragment'
   const isAuction = isFragment && item.attributes?.fragment_status === 'On auction'
   const accentColor = isFragment ? 'rgba(251,191,36,0.5)' : 'rgba(56,189,248,0.5)'
@@ -17,15 +17,19 @@ export default function ListingCard({ item }) {
         gap: 12,
         padding: '12px 14px 12px 16px',
         borderRadius: 16,
-        background: 'rgba(255,255,255,0.03)',
-        border: '1px solid rgba(255,255,255,0.07)',
+        background: isBest
+          ? 'linear-gradient(135deg, rgba(109,40,217,0.18) 0%, rgba(139,92,246,0.08) 100%)'
+          : 'rgba(255,255,255,0.03)',
+        border: isBest
+          ? '1px solid rgba(139,92,246,0.3)'
+          : '1px solid rgba(255,255,255,0.07)',
         borderLeft: `3px solid ${accentColor}`,
         textDecoration: 'none',
         transition: 'background 150ms ease, transform 100ms ease',
         WebkitTapHighlightColor: 'transparent',
       }}
-      onTouchStart={e => e.currentTarget.style.background = 'rgba(255,255,255,0.06)'}
-      onTouchEnd={e => e.currentTarget.style.background = 'rgba(255,255,255,0.03)'}
+      onTouchStart={e => e.currentTarget.style.background = isBest ? 'rgba(109,40,217,0.25)' : 'rgba(255,255,255,0.06)'}
+      onTouchEnd={e => e.currentTarget.style.background = isBest ? 'linear-gradient(135deg, rgba(109,40,217,0.18) 0%, rgba(139,92,246,0.08) 100%)' : 'rgba(255,255,255,0.03)'}
     >
       {/* left: name + model */}
       <div style={{ flex: 1, minWidth: 0 }}>
@@ -56,6 +60,19 @@ export default function ListingCard({ item }) {
           <span style={{ fontSize: 11, fontWeight: 500, color: 'rgba(125,211,252,0.7)' }}>TON</span>
         </div>
         <div style={{ display: 'flex', gap: 4 }}>
+          {isBest && (
+            <span style={{
+              fontSize: 9,
+              fontWeight: 700,
+              padding: '2px 7px',
+              borderRadius: 999,
+              background: 'linear-gradient(90deg, rgba(109,40,217,0.35) 0%, rgba(139,92,246,0.2) 100%)',
+              color: '#c4b5fd',
+              border: '1px solid rgba(139,92,246,0.45)',
+              letterSpacing: '0.6px',
+              textTransform: 'uppercase',
+            }}>Best Price</span>
+          )}
           {isAuction && (
             <span style={{
               fontSize: 10,
