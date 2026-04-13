@@ -429,16 +429,23 @@ const NetworkLines = () => (
     <circle cx="78%" cy="50%" r="1.5" fill="#a78bfa" opacity="0.3" className="node-pulse" style={{animationDelay:'2s'}}/>
 
     {/* прямо вниз до развилки */}
-    <line x1="50%" y1="17%" x2="50%"  y2="82%" stroke="rgba(139,92,246,0.1)" strokeWidth="0.6"/>
-    <line x1="50%" y1="17%" x2="50%"  y2="82%" stroke="rgba(167,139,250,0.2)" strokeWidth="0.6" className="line-flow" style={{animationDelay:'1.8s'}}/>
+    <line x1="50%" y1="17%" x2="50%"  y2="88%" stroke="rgba(139,92,246,0.1)" strokeWidth="0.6"/>
+    <line x1="50%" y1="17%" x2="50%"  y2="88%" stroke="rgba(167,139,250,0.2)" strokeWidth="0.6" className="line-flow" style={{animationDelay:'1.8s'}}/>
     <circle cx="50%" cy="60%" r="1.5" fill="#7c3aed" opacity="0.25" className="node-pulse" style={{animationDelay:'1.1s'}}/>
-    {/* развилка влево → GETGEMS */}
-    <line x1="50%" y1="82%" x2="22%"  y2="97%" stroke="rgba(139,92,246,0.1)" strokeWidth="0.6"/>
-    <line x1="50%" y1="82%" x2="22%"  y2="97%" stroke="rgba(167,139,250,0.2)" strokeWidth="0.6" className="line-slow" style={{animationDelay:'2s'}}/>
-    {/* развилка вправо → FRAGMENT */}
-    <line x1="50%" y1="82%" x2="78%"  y2="97%" stroke="rgba(139,92,246,0.1)" strokeWidth="0.6"/>
-    <line x1="50%" y1="82%" x2="78%"  y2="97%" stroke="rgba(167,139,250,0.2)" strokeWidth="0.6" className="line-slow" style={{animationDelay:'2.2s'}}/>
-    <circle cx="50%" cy="82%" r="1.5" fill="#a78bfa" opacity="0.35" className="node-pulse" style={{animationDelay:'1.8s'}}/>
+    {/* точка развилки */}
+    <circle cx="50%" cy="88%" r="1.5" fill="#a78bfa" opacity="0.35" className="node-pulse" style={{animationDelay:'1.8s'}}/>
+    {/* горизонталь влево → GETGEMS */}
+    <line x1="50%" y1="88%" x2="22%"  y2="88%" stroke="rgba(139,92,246,0.1)" strokeWidth="0.6"/>
+    <line x1="50%" y1="88%" x2="22%"  y2="88%" stroke="rgba(167,139,250,0.2)" strokeWidth="0.6" className="line-slow" style={{animationDelay:'2s'}}/>
+    {/* вниз к GETGEMS */}
+    <line x1="22%" y1="88%" x2="22%"  y2="100%" stroke="rgba(139,92,246,0.1)" strokeWidth="0.6"/>
+    <line x1="22%" y1="88%" x2="22%"  y2="100%" stroke="rgba(167,139,250,0.2)" strokeWidth="0.6" className="line-slow" style={{animationDelay:'2.1s'}}/>
+    {/* горизонталь вправо → FRAGMENT */}
+    <line x1="50%" y1="88%" x2="78%"  y2="88%" stroke="rgba(139,92,246,0.1)" strokeWidth="0.6"/>
+    <line x1="50%" y1="88%" x2="78%"  y2="88%" stroke="rgba(167,139,250,0.2)" strokeWidth="0.6" className="line-slow" style={{animationDelay:'2.2s'}}/>
+    {/* вниз к FRAGMENT */}
+    <line x1="78%" y1="88%" x2="78%"  y2="100%" stroke="rgba(139,92,246,0.1)" strokeWidth="0.6"/>
+    <line x1="78%" y1="88%" x2="78%"  y2="100%" stroke="rgba(167,139,250,0.2)" strokeWidth="0.6" className="line-slow" style={{animationDelay:'2.3s'}}/>
   </svg>
 )
 
