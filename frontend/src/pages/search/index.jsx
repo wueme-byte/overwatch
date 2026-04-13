@@ -42,7 +42,7 @@ export default function Search() {
   }, [])
 
   const filtered = collections.filter(c =>
-    c.name.toLowerCase().startsWith(filter.toLowerCase().trim())
+    c.name.toLowerCase().includes(filter.toLowerCase().trim())
   )
 
   if (selected) {
