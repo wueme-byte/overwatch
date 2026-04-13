@@ -248,7 +248,7 @@ export default function CollectionListings({ col, onBack }) {
                 <p style={{ color: 'rgba(255,255,255,0.2)', fontSize: 13 }}>No listings found</p>
               </div>
             ) : (
-              items.map((item, i) => <ListingCard key={i} item={item} />)
+              items.map((item, i) => <ListingCard key={i} item={item} isBest={i === 0 && page === 1} />)
             )}
 
             {totalPages > 1 && (
