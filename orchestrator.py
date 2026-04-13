@@ -50,6 +50,7 @@ def _usd_sort_key(listing: NFTListing, ton_price: Decimal) -> Decimal:
 class NFTOrchestrator:
     def __init__(self, redis: Redis):
         self.redis = redis
+        self._inflight: dict[str, asyncio.Task] = {}
 
     def _cache_key(self, slug: str) -> str:
         return f"nft:listings:{slug}"
@@ -63,6 +64,20 @@ class NFTOrchestrator:
                 raw = json.loads(cached)
                 return [_deserialize_listing(item) for item in raw]
 
+        # если уже идёт запрос для этой коллекции — ждём его результата
+        if collection_slug in self._inflight:
+            print(f"[Orchestrator] Waiting for inflight request: {collection_slug}")
+            return await asyncio.shield(self._inflight[collection_slug])
+
+        task = asyncio.ensure_future(self._do_fetch(collection_slug))
+        self._inflight[collection_slug] = task
+        try:
+            return await task
+        finally:
+            self._inflight.pop(collection_slug, None)
+
+    async def _do_fetch(self, collection_slug: str) -> list[NFTListing]:
+        key = self._cache_key(collection_slug)
         async with aiohttp.ClientSession() as session:
             gg = GetGemsClient(session, api_key=settings.GETGEMS_API_KEY)
 
