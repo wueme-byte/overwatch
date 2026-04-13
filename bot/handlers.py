@@ -88,11 +88,14 @@ def make_handlers(redis: Redis):
                 web_app=WebAppInfo(url="https://wueme-byte.github.io/overwatch/")
             )
         ]])
-        await update.message.reply_text(
-            "<b>Welcome to Overwatch 👁</b>\n\n"
-            "We track Telegram Gift listings across <b>Fragment</b> and <b>GetGems</b> — "
-            "so you always see the best available price in one place.\n\n"
-            "Open the app below to browse all collections and find the gift you're looking for.",
+        await update.message.reply_animation(
+            animation="https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExenRtOGRtODNsNDRqdGZrbmo4cDc5dzZqamN6MTJ0Z3F5bDJuZmN3eCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3o7aCRGgTXRZQVcQA8/giphy.gif",
+            caption=(
+                "<b>Welcome to Overwatch 👁</b>\n\n"
+                "We track Telegram Gift listings across <b>Fragment</b> and <b>GetGems</b> — "
+                "so you always see the best available price in one place.\n\n"
+                "Open the app below to browse all collections and find the gift you're looking for."
+            ),
             parse_mode=ParseMode.HTML,
             reply_markup=keyboard,
         )
