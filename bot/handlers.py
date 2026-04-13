@@ -88,8 +88,8 @@ def make_handlers(redis: Redis):
                 web_app=WebAppInfo(url="https://wueme-byte.github.io/overwatch/")
             )
         ]])
-        await update.message.reply_animation(
-            animation="https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExenRtOGRtODNsNDRqdGZrbmo4cDc5dzZqamN6MTJ0Z3F5bDJuZmN3eCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3o7aCRGgTXRZQVcQA8/giphy.gif",
+        await update.message.reply_photo(
+            photo="https://i.ibb.co/zH57cCsp/Bazaart-D52440-DF-12-C1-46-BC-A420-3-B8-C194-CC627.jpg",
             caption=(
                 "<b>Welcome to Overwatch 👁</b>\n\n"
                 "We track Telegram Gift listings across <b>Fragment</b> and <b>GetGems</b> — "
