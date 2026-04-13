@@ -89,22 +89,26 @@ def make_handlers(redis: Redis):
             )
         ]])
         await update.message.reply_text(
-            "<b>Overwatch</b>\n\n"
-            "<b>Поиск по коллекции:</b>\n"
-            "/collection &lt;название&gt; — все листинги коллекции\n"
-            "/collection &lt;название&gt; --model &lt;модель&gt; — фильтр по модели\n"
-            "/collection &lt;название&gt; --min &lt;TON&gt; --max &lt;TON&gt; — фильтр по цене\n\n"
-            "<b>Тематические коллекции:</b>\n"
-            "/theme &lt;название&gt; — обзор темы (лучшая цена по каждому типу)\n"
-            "/theme — список всех доступных тем\n\n"
-            "<i>Примеры:</i>\n"
-            "/collection durov's cap\n"
-            "/collection loot bags --model Liberty\n"
-            "/theme btc\n"
-            "/theme america",
+            "<b>Welcome to Overwatch 👁</b>\n\n"
+            "We track Telegram Gift listings across <b>Fragment</b> and <b>GetGems</b> — "
+            "so you always see the best available price in one place.\n\n"
+            "Open the app below to browse all collections and find the gift you're looking for.",
             parse_mode=ParseMode.HTML,
             reply_markup=keyboard,
         )
+        # Старые команды (оставлены для справки):
+        # "<b>Поиск по коллекции:</b>\n"
+        # "/collection &lt;название&gt; — все листинги коллекции\n"
+        # "/collection &lt;название&gt; --model &lt;модель&gt; — фильтр по модели\n"
+        # "/collection &lt;название&gt; --min &lt;TON&gt; --max &lt;TON&gt; — фильтр по цене\n\n"
+        # "<b>Тематические коллекции:</b>\n"
+        # "/theme &lt;название&gt; — обзор темы (лучшая цена по каждому типу)\n"
+        # "/theme — список всех доступных тем\n\n"
+        # "<i>Примеры:</i>\n"
+        # "/collection durov's cap\n"
+        # "/collection loot bags --model Liberty\n"
+        # "/theme btc\n"
+        # "/theme america"
 
     async def cmd_collection(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if not context.args:
