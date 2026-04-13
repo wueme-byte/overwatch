@@ -67,6 +67,8 @@ async def get_listings(
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+    all_models = sorted(set(l.model for l in listings if l.model))
+
     filtered = apply_filters(listings, model, min_ton, max_ton, attrs={})
 
     total = len(filtered)
@@ -78,6 +80,7 @@ async def get_listings(
         "page": page,
         "page_size": page_size,
         "items": [_listing_dict(l) for l in page_items],
+        "models": all_models,
     }
 
 

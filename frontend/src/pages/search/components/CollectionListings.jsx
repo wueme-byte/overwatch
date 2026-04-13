@@ -68,20 +68,13 @@ export default function CollectionListings({ col, onBack }) {
   const totalPages = Math.ceil(total / PAGE_SIZE)
 
   useEffect(() => {
-    fetchListings({ collection: col.name, page: 1, pageSize: 500 })
-      .then(data => {
-        const unique = [...new Set(data.items.map(i => i.model).filter(Boolean))].sort()
-        setModels(unique)
-      })
-  }, [col.name])
-
-  useEffect(() => {
     setLoading(true)
     setError(null)
     fetchListings({ collection: col.name, page, pageSize: PAGE_SIZE, model: modelFilter || undefined })
       .then(data => {
         setItems(data.items)
         setTotal(data.total)
+        if (data.models) setModels(data.models)
       })
       .catch(e => setError(e.message))
       .finally(() => setLoading(false))
