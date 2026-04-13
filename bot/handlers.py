@@ -91,7 +91,7 @@ def make_handlers(redis: Redis):
         await update.message.reply_photo(
             photo="https://i.ibb.co/zH57cCsp/Bazaart-D52440-DF-12-C1-46-BC-A420-3-B8-C194-CC627.jpg",
             caption=(
-                "<b>Welcome to Overwatch 👁</b>\n\n"
+                "<b>Welcome to Overwatch</b>\n\n"
                 "We track Telegram Gift listings across <b>Fragment</b> and <b>GetGems</b> — "
                 "so you always see the best available price in one place.\n\n"
                 "Open the app below to browse all collections and find the gift you're looking for."
