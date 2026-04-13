@@ -1,20 +1,18 @@
-# Overwatch — NFT Listing Bot
+# Overwatch
 
-Telegram бот для мониторинга листингов Telegram-подарков (NFT gifts) с GetGems и Fragment.
-Показывает листинги по коллекции и модели, отсортированные по цене в USD.
+Агрегатор листингов Telegram Gifts. Собирает данные с **GetGems** и **Fragment** параллельно, дедуплицирует по лучшей цене и отображает через Telegram Bot и Telegram Mini App.
 
 ---
 
-## Что умеет
+## Возможности
 
-- `/collection durov's cap` — все листинги коллекции
-- `/collection durov's cap --model jade` — листинги конкретной модели
-- `/collection durov's cap --min 10 --max 100` — фильтр по цене (TON)
-- `/collection durov's cap --attr Background=Red` — фильтр по атрибуту
-- `/models durov's cap` — все модели и атрибуты коллекции
-- `/track` / `/untrack` / `/mysubs` — подписки на новые листинги
-
-Данные берутся параллельно с GetGems и Fragment, дедуплицируются и сортируются по USD.
+- Поиск листингов по любой коллекции подарков
+- Фильтрация по модели, цене, атрибутам
+- Лучшая цена из двух маркетплейсов (GetGems + Fragment)
+- Пометка аукционных листингов Fragment
+- Кэширование в Redis (10 минут)
+- Подписки на новые листинги с уведомлениями в Telegram
+- Тематические подборки (BTC, America, Pokemon, Ladybug)
 
 ---
 
@@ -22,97 +20,225 @@ Telegram бот для мониторинга листингов Telegram-под
 
 ```
 overwatch/
-├── main.py                  # Точка входа — запускает бота
-│
-├── bot/
-│   ├── main.py              # Инициализация бота, регистрация хендлеров, Redis подключение
-│   └── handlers.py          # Команды бота (/collection, /track, /untrack, /mysubs, /models)
-│                            # parse_args()   — парсит --model, --min, --max, --attr из сообщения
-│                            # apply_filters() — фильтрует список листингов по параметрам
-│
-├── orchestrator.py          # Главный мозг
-│                            # fetch_listings(slug) — запрашивает GetGems + Fragment параллельно
-│                            # Дедупликация по nft_address (берёт дешевле если NFT на двух площадках)
-│                            # Сортировка по USD (курс TON берёт с CoinGecko в реальном времени)
-│                            # Кэш в Redis: TTL 600s, ключ nft:listings:{slug}
+├── api.py                  # FastAPI REST API для фронтенда
+├── orchestrator.py         # Бизнес-логика: fetch, дедупликация, кэш
+├── filters.py              # Фильтрация листингов
+├── themes.json             # Конфиг тематических коллекций
 │
 ├── fetchers/
-│   ├── getgems.py           # GetGems Public API (Bearer токен)
-│   │                        # search_collection() — ищет коллекцию по имени среди gift коллекций
-│   │                        # get_listings()      — пагинация по 100, все атрибуты и модели
-│   └── fragment.py          # Fragment через pyfragment (обход валидации через SimpleNamespace)
-│                            # Возвращает ~60 листингов (лимит Fragment API)
-│                            # Пагинация: break если next_offset не меняется
+│   ├── getgems.py          # Клиент GetGems API
+│   └── fragment.py         # Клиент Fragment.com (через pyfragment)
 │
 ├── models/
-│   └── nft.py               # NFTListing dataclass — все поля одного листинга:
-│                            #   name, model, collection_name, collection_address
-│                            #   price_nano, price_ton, price_usd, currency (TON/USDT)
-│                            #   marketplace, listing_url, image_url, attributes{}
-│                            # Marketplace enum: GETGEMS | FRAGMENT
+│   └── nft.py              # NFTListing dataclass, Marketplace enum
 │
 ├── config/
-│   └── settings.py          # Настройки из .env: BOT_TOKEN, GETGEMS_API_KEY, REDIS_URL,
-│                            # CACHE_TTL (600s), Fragment cookies
+│   └── settings.py         # Переменные окружения
 │
-├── tests/
-│   └── test_models.py       # Базовые тесты моделей
+├── bot/
+│   ├── main.py             # Инициализация и запуск бота
+│   └── handlers.py         # Обработчики команд
 │
-├── .env.example             # Шаблон переменных окружения
-└── requirements.txt         # Зависимости
+├── worker/
+│   └── poller.py           # Фоновый мониторинг подписок
+│
+├── frontend/               # Telegram Mini App (React + Vite)
+│   └── src/
+│       ├── api/            # Обращения к бэкенду
+│       └── pages/          # Home, Search, Themes
+│
+├── Dockerfile
+├── docker-compose.yml
+├── requirements.txt
+└── .env.example
 ```
 
 ---
 
-## Зависимости
+## Переменные окружения
 
-| Библиотека | Назначение |
+Скопируй `.env.example` → `.env` и заполни:
+
+| Переменная | Обязательно | Описание |
+|---|---|---|
+| `BOT_TOKEN` | ✅ | Токен от @BotFather |
+| `REDIS_URL` | ✅ | `redis://localhost:6379` |
+| `FRAGMENT_STEL_SSID` | ✅ | Cookie с fragment.com |
+| `FRAGMENT_STEL_DT` | ✅ | Cookie с fragment.com |
+| `FRAGMENT_STEL_TOKEN` | ✅ | Cookie с fragment.com |
+| `FRAGMENT_PROXY` | — | Прокси для Fragment (residential, если VPS) |
+| `GETGEMS_API_KEY` | — | Bearer токен GetGems |
+| `TONAPI_KEY` | — | TON API ключ |
+| `CACHE_TTL` | — | TTL кэша листингов в сек (default: 600) |
+| `POLL_INTERVAL_SECONDS` | — | Интервал проверки подписок (default: 30) |
+| `FRAGMENT_STEL_TON_TOKEN` | — | Cookie Fragment (только для покупок) |
+
+**Как получить Fragment cookies:**
+1. Открой `fragment.com`, залогинься через Telegram
+2. DevTools → Application → Cookies → fragment.com
+3. Скопируй `stel_ssid`, `stel_dt`, `stel_token`
+
+> ⚠️ Cookies периодически протухают. При ошибке 403 — повтори процедуру.
+
+---
+
+## API Endpoints
+
+### `GET /listings`
+Листинги коллекции с фильтрацией и пагинацией.
+
+| Параметр | Тип | Описание |
+|---|---|---|
+| `collection` | string | Название или адрес коллекции |
+| `model` | string | Фильтр по модели |
+| `min_ton` | float | Минимальная цена TON |
+| `max_ton` | float | Максимальная цена TON |
+| `page` | int | Номер страницы (default: 1) |
+| `page_size` | int | Размер страницы (default: 20, max: 500) |
+
+**Ответ:**
+```json
+{
+  "total": 150,
+  "page": 1,
+  "page_size": 15,
+  "models": ["Classic", "Jade", "Golden"],
+  "items": [{ "name": "...", "price_ton": "45.50", "marketplace": "Fragment", ... }]
+}
+```
+
+### `GET /collections`
+Список всех коллекций (кэш 1 час).
+
+### `GET /themes`
+Список тематических подборок.
+
+### `GET /themes/{theme_id}/listings`
+Листинги по теме, отсортированные по цене.
+
+---
+
+## Команды бота
+
+| Команда | Описание |
 |---|---|
-| python-telegram-bot 21.5 | Telegram Bot API |
-| aiohttp | Async HTTP запросы к GetGems / CoinGecko |
-| redis[asyncio] | Кэш листингов (TTL 600s) |
-| apscheduler | Планировщик фоновых задач |
-| python-dotenv | Загрузка .env |
-| pyfragment | Fragment API клиент |
+| `/start` | Приветствие + кнопка открыть Mini App |
+| `/collection <название>` | Все листинги коллекции |
+| `/collection <название> --model <модель>` | Фильтр по модели |
+| `/collection <название> --min <N> --max <N>` | Фильтр по цене TON |
+| `/collection <название> --attr Key=Value` | Фильтр по атрибуту |
+| `/models <название>` | Все модели и атрибуты коллекции |
+| `/theme <название>` | Лучшие цены по теме |
+| `/theme` | Список всех тем |
+| `/track <адрес>` | Подписка на новые листинги |
+| `/untrack <адрес>` | Отписка |
+| `/mysubs` | Активные подписки |
+
+**Примеры:**
+```
+/collection durov's cap
+/collection durov's cap --model Jade --min 50 --max 500
+/theme btc
+/track EQD9Pc-lIKJBpS...
+```
 
 ---
 
-## Запуск
+## Локальная разработка
+
+### Требования
+- Python 3.12+
+- Node.js 18+
+- Redis или Docker
+
+### Бэкенд
 
 ```bash
-# 1. Активировать venv
+# 1. Создать venv и установить зависимости
+python3 -m venv venv
 source venv/bin/activate
+pip install -r requirements.txt
 
-# 2. Заполнить .env (скопировать из .env.example)
+# 2. Настроить переменные
 cp .env.example .env
+# Заполнить .env
 
-# 3. Убедиться что Redis запущен
-redis-cli ping  # → PONG
+# 3. Запустить Redis
+redis-server
+# или через Docker:
+docker run -d -p 6379:6379 redis:7-alpine
 
-# 4. Запустить
-python main.py
+# 4. Запустить API (терминал 1)
+uvicorn api:app --reload --port 8000
+
+# 5. Запустить бота (терминал 2)
+python -m bot.main
 ```
 
-Убить процесс:
+### Фронтенд
+
 ```bash
-kill -9 $(pgrep -f "python main.py")
+cd frontend
+
+# Установить зависимости
+npm install
+
+# Запустить dev сервер
+npm run dev
+# → http://localhost:5173/overwatch/
+```
+
+> По умолчанию фронт ходит на `http://localhost:8000`. Можно переопределить через `VITE_API_URL` в `frontend/.env`.
+
+---
+
+## Продакшен
+
+### Запуск через Docker Compose
+
+```bash
+# Запустить всё (redis + api + bot)
+docker compose up -d
+
+# Пересобрать после изменений в коде
+docker compose up -d --build api
+
+# Логи
+docker logs overwatch-api-1 -f
+docker logs overwatch-bot-1 -f
+
+# Сбросить кэш Redis
+docker exec overwatch-redis-1 redis-cli FLUSHALL
+
+# Перезапустить сервис
+docker compose restart api
+docker compose restart bot
+```
+
+### Фронтенд (GitHub Pages)
+
+```bash
+cd frontend
+npm run build
+# dist/ автоматически деплоится через GitHub Actions на gh-pages ветку
 ```
 
 ---
 
-## Ключевые технические детали
+## Как работает дедупликация
 
-- **USDT цены**: GetGems возвращает `currency="USDT"`, делитель `10^6` (не `10^9` как у TON)
-- **Fragment slug**: из имени коллекции убираем не-alphanum + `rstrip('s')` → `"Durov's Caps"` → `"durovscap"`
-- **Fragment пост-фильтр**: проверяем что `nft_id` начинается с `col_slug` + `"-"`
-- **Redis десериализация**: `price_ton` → `Decimal`, `marketplace` → `Marketplace` enum (функция `_deserialize_listing`)
-- **Fragment таймаут**: `asyncio.wait_for(..., timeout=45.0)` в оркестраторе
+Если один и тот же NFT выставлен на обоих маркетплейсах — показывается только один листинг. Приоритет: **Fragment** побеждает GetGems. Если NFT только на GetGems — показывается GetGems версия.
 
----
+## Fragment на VPS
 
-## Планы (в разработке)
+Fragment блокирует запросы с IP датацентров (Cloudflare Bot Management). Решение — residential proxy:
 
-- FastAPI слой поверх оркестратора (REST API для Mini App)
-- Telegram Mini App (React фронт)
-- Тематические коллекции (`GET /themes/america/listings`)
-- Фоновое обновление кэша (без ожидания первого запроса)
+```env
+FRAGMENT_PROXY=http://user:pass@geo.iproyal.com:12321
+```
+
+Также добавить в `docker-compose.yml`:
+```yaml
+environment:
+  - HTTPS_PROXY=http://user:pass@geo.iproyal.com:12321
+```
