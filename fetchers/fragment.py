@@ -74,6 +74,7 @@ class FragmentClient:
                 if col_slug and not _slug_matches_collection(nft_id, col_slug):
                     continue
 
+                status = item.get("status") or ""
                 listings.append(NFTListing(
                     uid=f"fragment:{nft_id}",
                     name=name,
@@ -86,6 +87,7 @@ class FragmentClient:
                     marketplace=Marketplace.FRAGMENT,
                     listing_url=f"https://fragment.com/{slug}",
                     image_url=None,
+                    attributes={"fragment_status": status} if status else {},
                     fetched_at=time.time(),
                 ))
 

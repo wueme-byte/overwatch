@@ -1,5 +1,6 @@
 export default function ListingCard({ item }) {
   const isFragment = item.marketplace === 'Fragment'
+  const isAuction = isFragment && item.attributes?.fragment_status === 'On auction'
   const accentColor = isFragment ? 'rgba(251,191,36,0.5)' : 'rgba(56,189,248,0.5)'
   const badgeBg     = isFragment ? 'rgba(251,191,36,0.08)' : 'rgba(56,189,248,0.08)'
   const badgeColor  = isFragment ? '#fbbf24' : '#7dd3fc'
@@ -54,15 +55,28 @@ export default function ListingCard({ item }) {
           </span>
           <span style={{ fontSize: 11, fontWeight: 500, color: 'rgba(125,211,252,0.7)' }}>TON</span>
         </div>
-        <span style={{
-          fontSize: 10,
-          fontWeight: 500,
-          padding: '2px 7px',
-          borderRadius: 999,
-          background: badgeBg,
-          color: badgeColor,
-          border: `1px solid ${badgeBorder}`,
-        }}>{item.marketplace}</span>
+        <div style={{ display: 'flex', gap: 4 }}>
+          {isAuction && (
+            <span style={{
+              fontSize: 10,
+              fontWeight: 500,
+              padding: '2px 7px',
+              borderRadius: 999,
+              background: 'rgba(168,85,247,0.1)',
+              color: '#c084fc',
+              border: '1px solid rgba(168,85,247,0.25)',
+            }}>Auction</span>
+          )}
+          <span style={{
+            fontSize: 10,
+            fontWeight: 500,
+            padding: '2px 7px',
+            borderRadius: 999,
+            background: badgeBg,
+            color: badgeColor,
+            border: `1px solid ${badgeBorder}`,
+          }}>{item.marketplace}</span>
+        </div>
       </div>
     </a>
   )
