@@ -226,19 +226,42 @@ export default function CollectionListings({ col, onBack }) {
         style={{ flex: 1, overflowY: 'auto', padding: '12px 16px 32px', position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', gap: 8 }}
       >
         {loading && (
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '80px 0', gap: 10, color: 'rgba(255,255,255,0.25)', fontSize: 13 }}>
-            <svg style={{ animation: 'spin 1s linear infinite' }} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-              <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
-            </svg>
-            Loading...
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '80px 0', gap: 12 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: 'rgba(255,255,255,0.25)', fontSize: 13 }}>
+              <svg style={{ animation: 'spin 1s linear infinite' }} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+              </svg>
+              Loading listings...
+            </div>
+            <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.12)', textAlign: 'center', margin: 0, lineHeight: 1.5 }}>
+              First load may take up to 30 sec<br/>while we scan all marketplaces
+            </p>
           </div>
         )}
 
         {error && (
           <div style={{
             background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)',
-            borderRadius: 14, padding: '12px 16px', color: '#f87171', fontSize: 13,
-          }}>{error}</div>
+            borderRadius: 14, padding: '16px', color: '#f87171', fontSize: 13,
+            display: 'flex', flexDirection: 'column', gap: 12, alignItems: 'center', textAlign: 'center',
+          }}>
+            <span>Failed to load listings. Please try again.</span>
+            <button
+              onClick={() => {
+                setError(null)
+                setLoading(true)
+                fetchListings({ collection: col.name, page, pageSize: PAGE_SIZE, model: modelFilter || undefined })
+                  .then(data => { setItems(data.items); setTotal(data.total) })
+                  .catch(e => setError(e.message))
+                  .finally(() => setLoading(false))
+              }}
+              style={{
+                padding: '7px 20px', borderRadius: 999, fontSize: 12, fontWeight: 600,
+                background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)',
+                color: '#f87171', cursor: 'pointer',
+              }}
+            >Try again</button>
+          </div>
         )}
 
         {items && !loading && (
