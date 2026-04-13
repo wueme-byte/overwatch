@@ -74,7 +74,7 @@ export default function CollectionListings({ col, onBack }) {
       .then(data => {
         setItems(data.items)
         setTotal(data.total)
-        if (data.models) setModels(data.models)
+        if (data.models && data.models.length > 0) setModels(prev => prev.length > 0 ? prev : data.models)
       })
       .catch(e => setError(e.message))
       .finally(() => setLoading(false))
