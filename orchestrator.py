@@ -84,7 +84,7 @@ class NFTOrchestrator:
             frag_cookies = get_fragment_cookies()
             if frag_cookies:
                 frag = FragmentClient(frag_cookies)
-                tasks.append(asyncio.wait_for(frag.get_listings(col_addr, col_name), timeout=45.0))
+                tasks.append(asyncio.wait_for(frag.get_listings(col_addr, col_name), timeout=15.0))
             else:
                 print("[Orchestrator] Fragment cookies not configured — skipping Fragment")
 
@@ -106,7 +106,11 @@ class NFTOrchestrator:
         seen: dict[str, NFTListing] = {}
         for listing in all_listings:
             addr = listing.nft_address
-            if addr not in seen or _usd_sort_key(listing, ton_price) < _usd_sort_key(seen[addr], ton_price):
+            if addr not in seen:
+                seen[addr] = listing
+            elif listing.marketplace == Marketplace.FRAGMENT:
+                seen[addr] = listing
+            elif seen[addr].marketplace != Marketplace.FRAGMENT and _usd_sort_key(listing, ton_price) < _usd_sort_key(seen[addr], ton_price):
                 seen[addr] = listing
 
         deduped = sorted(seen.values(), key=lambda x: _usd_sort_key(x, ton_price))
