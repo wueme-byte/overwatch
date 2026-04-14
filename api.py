@@ -110,7 +110,10 @@ async def get_collections():
                 params=params, headers=headers,
                 timeout=aiohttp.ClientTimeout(total=15),
             ) as resp:
-                resp.raise_for_status()
+                if not resp.ok:
+                    body = await resp.text()
+                    print(f"[Collections] GetGems error {resp.status}: {body}")
+                    break
                 data = await resp.json()
 
             response = data.get("response", {})
