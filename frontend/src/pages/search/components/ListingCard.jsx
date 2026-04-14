@@ -101,7 +101,7 @@ export default function ListingCard({ item, isBest }) {
         onClick={e => {
           e.preventDefault()
           e.stopPropagation()
-          const url = `https://t.me/nft/${item.name}`
+          const url = `https://t.me/nft/${item.name.replace(/[\s']/g, '')}`
           if (window.Telegram?.WebApp?.openTelegramLink) {
             window.Telegram.WebApp.openTelegramLink(url)
           } else {
