@@ -12,6 +12,7 @@ export default function ListingCard({ item, isBest }) {
       target="_blank"
       rel="noopener noreferrer"
       style={{
+        position: 'relative',
         display: 'flex',
         alignItems: 'center',
         gap: 12,
@@ -95,6 +96,37 @@ export default function ListingCard({ item, isBest }) {
           }}>{item.marketplace}</span>
         </div>
       </div>
+
+      <button
+        onClick={e => {
+          e.preventDefault()
+          e.stopPropagation()
+          const url = `https://t.me/nft/${item.name}`
+          if (window.Telegram?.WebApp?.openTelegramLink) {
+            window.Telegram.WebApp.openTelegramLink(url)
+          } else {
+            window.open(url)
+          }
+        }}
+        style={{
+          position: 'absolute',
+          left: '27%',
+          top: '63%',
+          transform: 'translateY(-50%)',
+          width: 18, height: 18,
+          borderRadius: '50%',
+          background: 'linear-gradient(145deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.04) 100%)',
+          border: '1px solid rgba(255,255,255,0.18)',
+          boxShadow: '0 2px 4px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.15), inset 0 -1px 0 rgba(0,0,0,0.2)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          cursor: 'pointer', padding: 0,
+        }}
+      >
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="rgba(200,200,210,0.6)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+          <circle cx="12" cy="12" r="3"/>
+        </svg>
+      </button>
     </a>
   )
 }
