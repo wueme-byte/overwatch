@@ -100,8 +100,6 @@ async def get_collections():
     if settings.GETGEMS_API_KEY:
         headers["Authorization"] = f"Bearer {settings.GETGEMS_API_KEY}"
 
-    proxy = settings.FRAGMENT_PROXY or None
-
     async with aiohttp.ClientSession() as session:
         while True:
             params = {"limit": 100}
@@ -110,7 +108,6 @@ async def get_collections():
             async with session.get(
                 "https://api.getgems.io/public-api/v1/gifts/collections",
                 params=params, headers=headers,
-                proxy=proxy,
                 timeout=aiohttp.ClientTimeout(total=15),
             ) as resp:
                 if not resp.ok:
