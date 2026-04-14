@@ -111,18 +111,18 @@ export default function ListingCard({ item, isBest }) {
         style={{
           position: 'absolute',
           left: '27%',
-          top: '63%',
+          top: '68%',
           transform: 'translateY(-50%)',
-          width: 18, height: 18,
+          width: 24, height: 24,
           borderRadius: '50%',
-          background: 'linear-gradient(145deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.04) 100%)',
-          border: '1px solid rgba(255,255,255,0.18)',
-          boxShadow: '0 2px 4px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.15), inset 0 -1px 0 rgba(0,0,0,0.2)',
+          background: 'linear-gradient(145deg, rgba(139,92,246,0.25) 0%, rgba(109,40,217,0.1) 100%)',
+          border: '1px solid rgba(139,92,246,0.4)',
+          boxShadow: '0 0 8px rgba(139,92,246,0.3), 0 2px 4px rgba(0,0,0,0.4)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           cursor: 'pointer', padding: 0,
         }}
       >
-        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="rgba(200,200,210,0.6)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(196,181,253,0.85)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
           <circle cx="12" cy="12" r="3"/>
         </svg>
