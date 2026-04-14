@@ -67,7 +67,11 @@ async def get_listings(
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-    all_models = sorted(set(l.model for l in listings if l.model))
+    model_images: dict[str, str | None] = {}
+    for l in listings:
+        if l.model and l.model not in model_images:
+            model_images[l.model] = l.image_url
+    all_models = [{"name": m, "image": model_images[m]} for m in sorted(model_images)]
 
     filtered = apply_filters(listings, model, min_ton, max_ton, attrs={})
 
