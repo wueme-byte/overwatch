@@ -74,7 +74,7 @@ export default function CollectionListings({ col, onBack }) {
       .then(data => {
         setItems(data.items)
         setTotal(data.total)
-        if (data.models && data.models.length > 0) setModels(prev => prev.length > 0 ? prev : data.models)
+        if (data.models && data.models.length > 0) setModels(prev => prev.length > 0 ? prev : data.models.map(m => typeof m === 'string' ? { name: m, image: null } : m))
       })
       .catch(e => setError(e.message))
       .finally(() => setLoading(false))
@@ -149,7 +149,6 @@ export default function CollectionListings({ col, onBack }) {
                 flexShrink: 0,
               }}>
                 {total} listing{total !== 1 ? 's' : ''}
-                {modelFilter && <span style={{ opacity: 0.7, marginLeft: 4 }}>· {modelFilter}</span>}
               </span>
             )}
           </div>
@@ -199,22 +198,42 @@ export default function CollectionListings({ col, onBack }) {
                 background: !modelFilter ? 'rgba(139,92,246,0.1)' : 'transparent',
                 borderBottom: '1px solid rgba(255,255,255,0.05)',
                 cursor: 'pointer',
+                display: 'flex', alignItems: 'center',
               }}
-            >All models</button>
+            >
+              <span style={{ flex: 1 }}>All models</span>
+              {!modelFilter && (
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="20 6 9 17 4 12"/>
+                </svg>
+              )}
+            </button>
 
             {models.map((m, i) => (
               <button
-                key={m}
-                onClick={() => handleModelFilter(m)}
+                key={m.name}
+                onClick={() => handleModelFilter(m.name)}
                 style={{
-                  width: '100%', textAlign: 'left', padding: '11px 16px', fontSize: 13,
+                  width: '100%', textAlign: 'left', padding: '8px 16px', fontSize: 13,
                   textTransform: 'capitalize',
-                  color: modelFilter === m ? '#a78bfa' : 'rgba(255,255,255,0.55)',
-                  background: modelFilter === m ? 'rgba(139,92,246,0.1)' : 'transparent',
+                  color: modelFilter === m.name ? '#a78bfa' : 'rgba(255,255,255,0.55)',
+                  background: modelFilter === m.name ? 'rgba(139,92,246,0.1)' : 'transparent',
                   borderBottom: i < models.length - 1 ? '1px solid rgba(255,255,255,0.05)' : 'none',
                   cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', gap: 10,
                 }}
-              >{m}</button>
+              >
+                {m.image
+                  ? <img src={`https://ddejfvww7sqtk.cloudfront.net/images/attrs/${col.address}/${btoa(unescape(encodeURIComponent(m.name)))}.webp`} alt={m.name} style={{ width: 32, height: 32, objectFit: 'contain', flexShrink: 0 }} />
+                  : <div style={{ width: 32, height: 32, flexShrink: 0 }} />
+                }
+                <span style={{ flex: 1 }}>{m.name}</span>
+                {modelFilter === m.name && (
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="20 6 9 17 4 12"/>
+                  </svg>
+                )}
+              </button>
             ))}
           </div>
         )}
@@ -323,7 +342,9 @@ export default function CollectionListings({ col, onBack }) {
         )}
       </div>
 
-      <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
+      <style>{`
+        @keyframes spin { to { transform: rotate(360deg) } }
+      `}</style>
     </div>
   )
 }
