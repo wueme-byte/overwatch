@@ -72,6 +72,8 @@ class GetGemsClient:
         listings: list[NFTListing] = []
         cursor = None
 
+        retry_count = 0
+
         while True:
             params = {"limit": 100}
             if cursor:
@@ -84,8 +86,12 @@ class GetGemsClient:
                 timeout=aiohttp.ClientTimeout(total=15),
             ) as resp:
                 if resp.status == 429:
-                    await asyncio.sleep(2)
+                    wait = 5 * (2 ** retry_count)
+                    print(f"[GetGems] 429 rate limit, waiting {wait}s (attempt {retry_count + 1})")
+                    await asyncio.sleep(wait)
+                    retry_count += 1
                     continue
+                retry_count = 0
                 resp.raise_for_status()
                 data = await resp.json()
 

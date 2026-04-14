@@ -11,7 +11,7 @@ from filters import apply_filters
 from config.settings import settings
 
 COLLECTIONS_CACHE_KEY = "nft:collections"
-COLLECTIONS_CACHE_TTL = 3600  # 1 час
+COLLECTIONS_CACHE_TTL = 86400  # 24 часа
 
 THEMES: dict = json.loads(Path("themes.json").read_text())
 
