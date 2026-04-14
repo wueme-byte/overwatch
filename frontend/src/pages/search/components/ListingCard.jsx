@@ -49,7 +49,7 @@ export default function ListingCard({ item, isBest }) {
           whiteSpace: 'nowrap',
           overflow: 'hidden',
           textOverflow: 'ellipsis',
-        }}>{item.model}</p>
+        }}>{item.model || (isFragment ? 'Auction live' : '\u00A0')}</p>
       </div>
 
       {/* right: price + badge */}
