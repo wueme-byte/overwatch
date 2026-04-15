@@ -24,7 +24,7 @@ export default function Themes() {
       <button
         onClick={() => navigate(-1)}
         style={{
-          position: 'absolute', top: 52, left: 16, zIndex: 20,
+          position: 'absolute', top: 152, left: 16, zIndex: 20,
           width: 32, height: 32, borderRadius: '50%',
           background: 'rgba(139,92,246,0.12)',
           border: '1px solid rgba(139,92,246,0.25)',
