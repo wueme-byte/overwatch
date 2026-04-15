@@ -84,7 +84,7 @@ def make_handlers(redis: Redis):
     async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         keyboard = InlineKeyboardMarkup([[
             InlineKeyboardButton(
-                "Open Overwatch",
+                "Start Overwatch",
                 web_app=WebAppInfo(url="https://wueme-byte.github.io/overwatch/"),
                 style="success"
             )
