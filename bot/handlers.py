@@ -85,7 +85,8 @@ def make_handlers(redis: Redis):
         keyboard = InlineKeyboardMarkup([[
             InlineKeyboardButton(
                 "Open Overwatch",
-                web_app=WebAppInfo(url="https://wueme-byte.github.io/overwatch/")
+                web_app=WebAppInfo(url="https://wueme-byte.github.io/overwatch/"),
+                style="success"
             )
         ]])
         await update.message.reply_photo(
