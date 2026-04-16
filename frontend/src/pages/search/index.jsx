@@ -121,7 +121,7 @@ export default function Search() {
 
       <div className="flex-1 overflow-y-auto px-4 pb-8 relative z-10" style={{ paddingTop: 10 }}>
         {loadingCols ? (
-          <div className="flex items-center justify-center py-20 gap-3 text-gray-500 text-sm">
+          <div className="flex items-center justify-center py-20 gap-3 text-sm" style={{ color: 'rgba(167,139,250,0.5)' }}>
             <svg className="animate-spin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
               <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
             </svg>
