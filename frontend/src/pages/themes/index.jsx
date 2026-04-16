@@ -82,7 +82,7 @@ export default function Themes() {
 
         {/* Title */}
         <h1 style={{
-          fontSize: 58, fontWeight: 900, margin: 0,
+          fontSize: 58, fontWeight: 900, margin: 0, position: 'relative', top: -20,
           letterSpacing: '-4px', lineHeight: 0.88,
           textAlign: 'center',
           background: 'linear-gradient(150deg, #ffffff 0%, #bae6fd 40%, #38bdf8 75%, #0284c7 100%)',
