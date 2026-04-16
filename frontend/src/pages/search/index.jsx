@@ -41,9 +41,13 @@ export default function Search() {
       .finally(() => setLoadingCols(false))
   }, [])
 
-  const filtered = collections.filter(c =>
-    c.name.toLowerCase().includes(filter.toLowerCase().trim())
-  )
+  const filtered = collections
+    .filter(c => c.name.toLowerCase().includes(filter.toLowerCase().trim()))
+    .sort((a, b) => {
+      const aLast = a.name.toLowerCase().includes('toy bear') ? 1 : 0
+      const bLast = b.name.toLowerCase().includes('toy bear') ? 1 : 0
+      return aLast - bLast
+    })
 
   if (selected) {
     return <CollectionListings col={selected} onBack={() => { setSelected(null); setFilter('') }} />
