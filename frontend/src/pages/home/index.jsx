@@ -306,47 +306,46 @@ const Radar = () => {
           </text>
         })}
 
-        {/* pulse rings from center */}
+        {/* pulse rings from center — CSS animated */}
         {[0, 0.9, 1.8].map((delay, i) => (
-          <circle key={i} cx={C} cy={C} r="0" fill="none"
+          <circle key={i} cx={C} cy={C} r={R} fill="none"
             stroke={`rgba(167,139,250,${0.7 - i * 0.2})`}
-            strokeWidth={1.2 - i * 0.3}>
-            <animate attributeName="r" values={`0;${R}`} dur="2.8s" begin={`${delay}s`} repeatCount="indefinite"/>
-            <animate attributeName="opacity" values="0.8;0" dur="2.8s" begin={`${delay}s`} repeatCount="indefinite"/>
-          </circle>
+            strokeWidth={1.2 - i * 0.3}
+            style={{
+              transformOrigin: `${C}px ${C}px`,
+              animation: `radarPulse 2.8s ${delay}s linear infinite`,
+            }}
+          />
         ))}
 
         {/* sweep trail */}
-        <g style={{ transformOrigin: `${C}px ${C}px`, animation: 'sweep 3s linear infinite' }}>
-          {/* wide soft trail */}
+        <g style={{ transformOrigin: `${C}px ${C}px`, animation: 'sweep 3s linear infinite', willChange: 'transform' }}>
           <path d={`M${C},${C} L${C},${C-R} A${R},${R} 0 0,0 ${C-R},${C} Z`}
             fill="rgba(109,40,217,0.12)"/>
-          {/* tighter bright trail */}
           <path d={`M${C},${C} L${C},${C-R} A${R},${R} 0 0,0 ${C - R*0.71},${C - R*0.71} Z`}
             fill="rgba(139,92,246,0.18)"/>
         </g>
 
         {/* sweep arm */}
-        <g style={{ transformOrigin: `${C}px ${C}px`, animation: 'sweep 3s linear infinite' }}>
+        <g style={{ transformOrigin: `${C}px ${C}px`, animation: 'sweep 3s linear infinite', willChange: 'transform' }}>
           <line x1={C} y1={C} x2={C} y2={C-R+2}
             stroke="rgba(192,168,255,0.9)" strokeWidth="1"/>
-          {/* tip */}
           <circle cx={C} cy={C-R+5} r="2.5" fill="#c4b5fd"/>
-          {/* mid dot */}
           <circle cx={C} cy={C-42} r="1.2" fill="rgba(167,139,250,0.6)"/>
         </g>
 
-        {/* blips */}
+        {/* blips — CSS animated */}
         {blips.map((b,i) => (
           <g key={i}>
-            <circle cx={b.cx} cy={b.cy} r={b.r} fill={b.color}>
-              <animate attributeName="opacity" values="0.9;0.1;0.9" dur={b.dur} begin={b.delay} repeatCount="indefinite"/>
-            </circle>
-            {/* expanding ring on blip */}
-            <circle cx={b.cx} cy={b.cy} r="0" fill="none" stroke={b.color} strokeWidth="0.6">
-              <animate attributeName="r" values={`0;${b.r * 4}`} dur={b.dur} begin={b.delay} repeatCount="indefinite"/>
-              <animate attributeName="opacity" values="0.5;0" dur={b.dur} begin={b.delay} repeatCount="indefinite"/>
-            </circle>
+            <circle cx={b.cx} cy={b.cy} r={b.r} fill={b.color}
+              style={{ animation: `blipBlink ${b.dur} ${b.delay} ease-in-out infinite` }}
+            />
+            <circle cx={b.cx} cy={b.cy} r={b.r * 4} fill="none" stroke={b.color} strokeWidth="0.6"
+              style={{
+                transformOrigin: `${b.cx}px ${b.cy}px`,
+                animation: `blipRing ${b.dur} ${b.delay} ease-out infinite`,
+              }}
+            />
           </g>
         ))}
 
@@ -389,48 +388,40 @@ const NetworkLines = () => (
       Линии выходят за края (отрицательные координаты / > 390 / > 844).
     */}
 
-    {/* origin точка — центр радара */}
-    {/* ↖ верхний левый */}
+    {/* ↖ верхний левый — line-flow */}
     <line x1="50%" y1="17%" x2="-5%"  y2="-2%"  stroke="rgba(139,92,246,0.18)" strokeWidth="0.7"/>
     <line x1="50%" y1="17%" x2="-5%"  y2="-2%"  stroke="rgba(167,139,250,0.4)" strokeWidth="0.7" className="line-flow"/>
-    {/* node */}
     <circle cx="20%" cy="8%" r="2" fill="#7c3aed" opacity="0.5" className="node-pulse"/>
-    {/* ветка от node */}
     <line x1="20%" y1="8%" x2="-8%" y2="18%" stroke="rgba(139,92,246,0.1)" strokeWidth="0.5"/>
-    <line x1="20%" y1="8%" x2="-8%" y2="18%" stroke="rgba(167,139,250,0.3)" strokeWidth="0.5" className="line-slow"/>
 
-    {/* ↗ верхний правый */}
+    {/* ↗ верхний правый — line-flow */}
     <line x1="50%" y1="17%" x2="108%" y2="-3%"  stroke="rgba(139,92,246,0.15)" strokeWidth="0.7"/>
     <line x1="50%" y1="17%" x2="108%" y2="-3%"  stroke="rgba(167,139,250,0.35)" strokeWidth="0.7" className="line-flow" style={{animationDelay:'0.6s'}}/>
     <circle cx="80%" cy="6%" r="1.8" fill="#a78bfa" opacity="0.5" className="node-pulse" style={{animationDelay:'1s'}}/>
     <line x1="80%" y1="6%" x2="110%" y2="14%" stroke="rgba(139,92,246,0.1)" strokeWidth="0.5"/>
-    <line x1="80%" y1="6%" x2="110%" y2="14%" stroke="rgba(167,139,250,0.25)" strokeWidth="0.5" className="line-slow" style={{animationDelay:'1.2s'}}/>
 
-    {/* ← левый */}
+    {/* ← левый — line-slow */}
     <line x1="50%" y1="17%" x2="-5%"  y2="30%"  stroke="rgba(139,92,246,0.12)" strokeWidth="0.6"/>
     <line x1="50%" y1="17%" x2="-5%"  y2="30%"  stroke="rgba(167,139,250,0.3)" strokeWidth="0.6" className="line-slow" style={{animationDelay:'0.3s'}}/>
     <circle cx="14%" cy="26%" r="1.6" fill="#7c3aed" opacity="0.4" className="node-pulse" style={{animationDelay:'0.5s'}}/>
     <line x1="14%" y1="26%" x2="-6%" y2="42%" stroke="rgba(139,92,246,0.08)" strokeWidth="0.5"/>
 
-    {/* → правый */}
+    {/* → правый — статичный */}
     <line x1="50%" y1="17%" x2="108%" y2="28%"  stroke="rgba(139,92,246,0.12)" strokeWidth="0.6"/>
-    <line x1="50%" y1="17%" x2="108%" y2="28%"  stroke="rgba(167,139,250,0.28)" strokeWidth="0.6" className="line-flow" style={{animationDelay:'1.4s'}}/>
     <circle cx="87%" cy="25%" r="1.8" fill="#a78bfa" opacity="0.45" className="node-pulse" style={{animationDelay:'0.8s'}}/>
 
-    {/* ↙ нижний левый */}
+    {/* ↙ нижний левый — статичный */}
     <line x1="50%" y1="17%" x2="-5%"  y2="75%"  stroke="rgba(139,92,246,0.1)" strokeWidth="0.6"/>
-    <line x1="50%" y1="17%" x2="-5%"  y2="75%"  stroke="rgba(167,139,250,0.22)" strokeWidth="0.6" className="line-slow" style={{animationDelay:'0.9s'}}/>
     <circle cx="22%" cy="52%" r="1.6" fill="#7c3aed" opacity="0.35" className="node-pulse" style={{animationDelay:'1.5s'}}/>
     <line x1="22%" y1="52%" x2="-6%" y2="60%" stroke="rgba(139,92,246,0.07)" strokeWidth="0.4"/>
 
-    {/* ↘ нижний правый */}
+    {/* ↘ нижний правый — статичный */}
     <line x1="50%" y1="17%" x2="108%" y2="72%"  stroke="rgba(139,92,246,0.1)" strokeWidth="0.6"/>
-    <line x1="50%" y1="17%" x2="108%" y2="72%"  stroke="rgba(167,139,250,0.2)" strokeWidth="0.6" className="line-slow" style={{animationDelay:'0.4s'}}/>
     <circle cx="78%" cy="50%" r="1.5" fill="#a78bfa" opacity="0.3" className="node-pulse" style={{animationDelay:'2s'}}/>
 
-    {/* прямо вниз */}
+    {/* прямо вниз — line-slow */}
     <line x1="50%" y1="17%" x2="50%"  y2="105%" stroke="rgba(139,92,246,0.1)" strokeWidth="0.6"/>
-    <line x1="50%" y1="17%" x2="50%"  y2="105%" stroke="rgba(167,139,250,0.2)" strokeWidth="0.6" className="line-flow" style={{animationDelay:'1.8s'}}/>
+    <line x1="50%" y1="17%" x2="50%"  y2="105%" stroke="rgba(167,139,250,0.2)" strokeWidth="0.6" className="line-slow" style={{animationDelay:'1.8s'}}/>
     <circle cx="50%" cy="60%" r="1.5" fill="#7c3aed" opacity="0.25" className="node-pulse" style={{animationDelay:'1.1s'}}/>
   </svg>
 )
