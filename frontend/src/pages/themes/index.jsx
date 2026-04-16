@@ -59,7 +59,7 @@ export default function Themes() {
       <button
         onClick={goBack}
         style={{
-          position: 'absolute', top: 152, left: 16, zIndex: 20,
+          position: 'absolute', top: 120, left: 16, zIndex: 20,
           width: 32, height: 32, borderRadius: '50%',
           background: 'rgba(139,92,246,0.12)',
           border: '1px solid rgba(139,92,246,0.25)',
@@ -77,7 +77,7 @@ export default function Themes() {
         position: 'relative', zIndex: 10,
         flex: 1, display: 'flex', flexDirection: 'column',
         alignItems: 'center', justifyContent: 'flex-start',
-        padding: '220px 24px 0',
+        padding: '200px 24px 0',
       }}>
 
         {/* Title */}
@@ -93,28 +93,28 @@ export default function Themes() {
           THEMES
         </h1>
 
+        {/* Subtitle */}
+        <p style={{
+          color: 'rgba(196,181,253,0.4)',
+          fontSize: 11, margin: '14px 0 0',
+          letterSpacing: '0.22em', textTransform: 'uppercase', fontWeight: 500,
+          animation: 'fadeUp 0.5s 0.08s both',
+        }}>
+          hand-picked gift sets
+        </p>
+
         {/* Badge */}
         <div style={{
           display: 'inline-flex', alignItems: 'center', gap: 6,
           background: 'rgba(255,255,255,0.03)',
           border: '1px solid rgba(255,255,255,0.07)',
           borderRadius: 100, padding: '5px 12px',
-          marginTop: 16,
-          animation: 'fadeUp 0.5s 0.08s both',
+          marginTop: 14,
+          animation: 'fadeUp 0.5s 0.15s both',
         }}>
           <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#f97316', boxShadow: '0 0 6px #f97316' }} />
           <span style={{ fontSize: 11, color: '#52525b', letterSpacing: '0.05em' }}>IN PROGRESS</span>
         </div>
-
-        {/* Subtitle */}
-        <p style={{
-          color: 'rgba(196,181,253,0.4)',
-          fontSize: 11, margin: '18px 0 0',
-          letterSpacing: '0.22em', textTransform: 'uppercase', fontWeight: 500,
-          animation: 'fadeUp 0.5s 0.15s both',
-        }}>
-          hand-picked gift sets
-        </p>
 
         {/* Divider */}
         <div style={{
