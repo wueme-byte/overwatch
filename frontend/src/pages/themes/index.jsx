@@ -1,10 +1,17 @@
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 export default function Themes() {
   const navigate = useNavigate()
+  const [exiting, setExiting] = useState(false)
+
+  function goBack() {
+    setExiting(true)
+    setTimeout(() => navigate(-1), 300)
+  }
 
   return (
-    <div style={{
+    <div className={exiting ? 'page-exit' : 'page-enter'} style={{
       position: 'relative', height: '100svh',
       background: '#06030f',
       overflow: 'hidden', display: 'flex', flexDirection: 'column',
@@ -50,7 +57,7 @@ export default function Themes() {
 
       {/* Back */}
       <button
-        onClick={() => navigate(-1)}
+        onClick={goBack}
         style={{
           position: 'absolute', top: 152, left: 16, zIndex: 20,
           width: 32, height: 32, borderRadius: '50%',
