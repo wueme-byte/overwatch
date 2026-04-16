@@ -118,29 +118,7 @@ export default function Themes() {
           <span style={{ fontSize: 11, color: '#52525b', letterSpacing: '0.05em' }}>IN PROGRESS</span>
         </div>
 
-        {/* Divider */}
-        <div style={{
-          display: 'flex', alignItems: 'center', gap: 12,
-          marginTop: 52,
-          animation: 'fadeUp 0.5s 0.25s both',
-        }}>
-          <div style={{ height: 1, width: 60, background: 'linear-gradient(90deg, transparent, rgba(139,92,246,0.3))' }} />
-          <span style={{ fontSize: 10, color: 'rgba(139,92,246,0.4)', letterSpacing: '0.2em', fontWeight: 500 }}>
-            WORK IN PROGRESS
-          </span>
-          <div style={{ height: 1, width: 60, background: 'linear-gradient(270deg, transparent, rgba(139,92,246,0.3))' }} />
-        </div>
-
-        {/* Coming soon */}
-        <p style={{
-          marginTop: 16,
-          fontSize: 13, color: 'rgba(196,181,253,0.38)',
-          textAlign: 'center', lineHeight: 1.7,
-          animation: 'fadeUp 0.5s 0.32s both',
-        }}>
-          We're building curated gift collections.<br />
-          <span style={{ color: 'rgba(139,92,246,0.3)' }}>Coming soon.</span>
-        </p>
+        
 
       </div>
 
