@@ -82,13 +82,22 @@ def make_handlers(redis: Redis):
     orchestrator = NFTOrchestrator(redis)
 
     async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-        keyboard = InlineKeyboardMarkup([[
-            InlineKeyboardButton(
-                "Start Overwatch",
-                web_app=WebAppInfo(url="https://wueme-byte.github.io/overwatch/"),
-                style="success"
-            )
-        ]])
+        keyboard = InlineKeyboardMarkup([
+            [
+                InlineKeyboardButton(
+                    "Community",
+                    url="https://t.me/overwatch_gifts",
+                    style="primary"
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    "Start Overwatch",
+                    web_app=WebAppInfo(url="https://wueme-byte.github.io/overwatch/"),
+                    style="success"
+                )
+            ],
+        ])
         await update.message.reply_photo(
             photo="https://i.ibb.co/zH57cCsp/Bazaart-D52440-DF-12-C1-46-BC-A420-3-B8-C194-CC627.jpg",
             caption=(
