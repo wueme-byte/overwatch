@@ -58,7 +58,7 @@ export default function AnimatedSearch({ value, onChange }) {
         type="text"
         value={value}
         onChange={e => onChange(e.target.value)}
-        placeholder="Filter collections..."
+        placeholder=""
         className="as-input"
       />
 
