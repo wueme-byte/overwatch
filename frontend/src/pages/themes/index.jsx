@@ -23,7 +23,6 @@ export default function Themes() {
         width: 480, height: 480, borderRadius: '50%',
         background: 'radial-gradient(circle, rgba(109,40,217,0.28) 0%, transparent 65%)',
         filter: 'blur(65px)',
-        animation: 'floatA 11s ease-in-out infinite',
         pointerEvents: 'none',
       }} />
 
@@ -33,7 +32,6 @@ export default function Themes() {
         width: 520, height: 520, borderRadius: '50%',
         background: 'radial-gradient(circle, rgba(3,105,161,0.45) 0%, transparent 65%)',
         filter: 'blur(60px)',
-        animation: 'floatB 14s ease-in-out infinite',
         pointerEvents: 'none',
       }} />
 
@@ -43,7 +41,6 @@ export default function Themes() {
         width: 320, height: 320, borderRadius: '50%',
         background: 'radial-gradient(circle, rgba(14,116,144,0.3) 0%, transparent 65%)',
         filter: 'blur(50px)',
-        animation: 'floatC 9s ease-in-out infinite',
         pointerEvents: 'none',
       }} />
 
@@ -58,6 +55,7 @@ export default function Themes() {
       {/* Back */}
       <button
         onClick={goBack}
+        className="back-btn"
         style={{
           position: 'absolute', top: 110, left: 16, zIndex: 20,
           width: 32, height: 32, borderRadius: '50%',
@@ -123,18 +121,6 @@ export default function Themes() {
       </div>
 
       <style>{`
-        @keyframes floatA {
-          0%, 100% { transform: translate(0, 0); }
-          50%       { transform: translate(40px, 30px); }
-        }
-        @keyframes floatB {
-          0%, 100% { transform: translate(0, 0); }
-          50%       { transform: translate(-30px, -20px); }
-        }
-        @keyframes floatC {
-          0%, 100% { transform: translate(0, 0); }
-          50%       { transform: translate(20px, -15px); }
-        }
         @keyframes ping {
           0%   { transform: scale(1); opacity: 0.6; }
           100% { transform: scale(2.8); opacity: 0; }

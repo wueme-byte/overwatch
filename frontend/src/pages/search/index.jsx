@@ -100,7 +100,7 @@ export default function Search() {
         <div className="flex items-center gap-2" style={{ paddingLeft: 15, position: 'relative', top: 20 }}>
           <button
             onClick={() => { setExiting(true); setTimeout(() => navigate(-1), 300) }}
-            className="w-7 h-7 flex items-center justify-center rounded-full bg-white/[0.06] hover:text-white transition-colors"
+            className="back-btn w-7 h-7 flex items-center justify-center rounded-full bg-white/[0.06] hover:text-white"
             style={{ color: '#a78bfa', flexShrink: 0 }}
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
