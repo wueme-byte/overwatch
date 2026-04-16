@@ -59,7 +59,7 @@ export default function Themes() {
       <button
         onClick={goBack}
         style={{
-          position: 'absolute', top: 120, left: 16, zIndex: 20,
+          position: 'absolute', top: 110, left: 16, zIndex: 20,
           width: 32, height: 32, borderRadius: '50%',
           background: 'rgba(139,92,246,0.12)',
           border: '1px solid rgba(139,92,246,0.25)',
