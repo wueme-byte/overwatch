@@ -82,31 +82,37 @@ export default function Themes() {
 
         {/* Title */}
         <h1 style={{
-          fontSize: 28, fontWeight: 800, letterSpacing: '-0.6px', margin: 0, lineHeight: 1,
+          fontSize: 45, fontWeight: 900, margin: 0, position: 'relative', top: -15,
+          letterSpacing: '-4px', lineHeight: 0.88, paddingRight: '4px',
+          textAlign: 'center',
           background: 'linear-gradient(150deg, #ffffff 0%, #bae6fd 40%, #38bdf8 75%, #0284c7 100%)',
           WebkitBackgroundClip: 'text',
           WebkitTextFillColor: 'transparent',
           animation: 'fadeUp 0.5s 0s both, glow 5s ease-in-out infinite',
         }}>
-          Themes
+          THEMES
         </h1>
 
         {/* Subtitle */}
         <p style={{
-          fontSize: 11, color: '#3f3f46', marginTop: 8,
-          letterSpacing: '0.14em', fontWeight: 500,
+          color: 'rgba(196,181,253,0.4)',
+          fontSize: 11, margin: '14px 0 0',
+          letterSpacing: '0.22em', textTransform: 'uppercase', fontWeight: 500,
           animation: 'fadeUp 0.5s 0.08s both',
+          position: 'relative', top: -15,
         }}>
-          HAND-PICKED GIFT SETS
+          hand-picked gift sets
         </p>
 
         {/* Badge */}
         <div style={{
-          marginTop: 16, display: 'flex', alignItems: 'center', gap: 6,
+          display: 'inline-flex', alignItems: 'center', gap: 6,
           background: 'rgba(255,255,255,0.03)',
           border: '1px solid rgba(255,255,255,0.07)',
           borderRadius: 100, padding: '5px 12px',
+          marginTop: 14,
           animation: 'fadeUp 0.5s 0.15s both',
+          position: 'relative', top: -10,
         }}>
           <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#f97316', boxShadow: '0 0 6px #f97316' }} />
           <span style={{ fontSize: 11, color: '#52525b', letterSpacing: '0.05em' }}>IN PROGRESS</span>
