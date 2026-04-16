@@ -95,6 +95,14 @@ body {
   animation: shimmer 5.25s linear 1.3s infinite;
 }
 
+.back-btn {
+  transition: transform 0.15s ease;
+  will-change: transform;
+}
+.back-btn:active {
+  transform: scale(0.85);
+}
+
 .carousel-card {
   position: absolute;
   width: calc(100vw - 48px);
