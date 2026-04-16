@@ -100,8 +100,14 @@ export default function Search() {
         <div className="flex items-center gap-2" style={{ paddingLeft: 15, position: 'relative', top: 20 }}>
           <button
             onClick={() => { setExiting(true); setTimeout(() => navigate(-1), 300) }}
-            className="back-btn w-7 h-7 flex items-center justify-center rounded-full bg-white/[0.06] hover:text-white"
-            style={{ color: '#a78bfa', flexShrink: 0 }}
+            className="back-btn"
+            style={{
+              width: 32, height: 32, borderRadius: '50%',
+              background: 'rgba(139,92,246,0.12)',
+              border: '1px solid rgba(139,92,246,0.25)',
+              color: '#a78bfa', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              cursor: 'pointer', flexShrink: 0,
+            }}
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
               <polyline points="15 18 9 12 15 6"/>
