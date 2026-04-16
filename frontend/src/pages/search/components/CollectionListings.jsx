@@ -245,16 +245,59 @@ export default function CollectionListings({ col, onBack }) {
         style={{ flex: 1, overflowY: 'auto', padding: '12px 16px 32px', position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', gap: 8 }}
       >
         {loading && (
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '80px 0', gap: 12 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: 'rgba(255,255,255,0.25)', fontSize: 13 }}>
-              <svg style={{ animation: 'spin 1s linear infinite' }} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
-              </svg>
-              Loading listings...
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '60px 24px', gap: 32 }}>
+
+            {/* terminal block */}
+            <div style={{
+              width: '100%', maxWidth: 280,
+              background: 'rgba(255,255,255,0.02)',
+              border: '1px solid rgba(139,92,246,0.15)',
+              borderRadius: 14, padding: '16px 18px',
+              fontFamily: 'monospace',
+            }}>
+              {/* title bar */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 14 }}>
+                <div style={{ width: 6, height: 6, borderRadius: '50%', background: 'rgba(239,68,68,0.5)' }}/>
+                <div style={{ width: 6, height: 6, borderRadius: '50%', background: 'rgba(251,191,36,0.5)' }}/>
+                <div style={{ width: 6, height: 6, borderRadius: '50%', background: 'rgba(74,222,128,0.5)' }}/>
+                <span style={{ marginLeft: 6, fontSize: 10, color: 'rgba(255,255,255,0.15)', letterSpacing: '0.08em' }}>overwatch ~ scan</span>
+              </div>
+
+              {/* lines */}
+              {[
+                { text: '> Connecting to Fragment...', suffix: '✓', suffixColor: '#4ade80', delay: '0s' },
+                { text: '> Connecting to GetGems...', suffix: '✓', suffixColor: '#4ade80', delay: '0.6s' },
+                { text: '> Fetching listings...', suffix: null, delay: '1.2s' },
+              ].map((line, i) => (
+                <div key={i} style={{
+                  display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                  fontSize: 11, marginBottom: 8,
+                  opacity: 0, animation: `termLine 0.3s ${line.delay} forwards`,
+                }}>
+                  <span style={{ color: 'rgba(167,139,250,0.6)' }}>{line.text}</span>
+                  {line.suffix
+                    ? <span style={{ color: line.suffixColor, marginLeft: 8 }}>{line.suffix}</span>
+                    : <span style={{ color: '#a78bfa', animation: 'termCursor 0.8s ease-in-out infinite' }}>█</span>
+                  }
+                </div>
+              ))}
             </div>
-            <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.12)', textAlign: 'center', margin: 0, lineHeight: 1.5 }}>
+
+            {/* hint */}
+            <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.1)', textAlign: 'center', margin: 0, lineHeight: 1.6 }}>
               First load may take up to 30 sec<br/>while we scan all marketplaces
             </p>
+
+            <style>{`
+              @keyframes termLine {
+                from { opacity: 0; transform: translateX(-6px); }
+                to   { opacity: 1; transform: translateX(0); }
+              }
+              @keyframes termCursor {
+                0%, 100% { opacity: 1; }
+                50%       { opacity: 0; }
+              }
+            `}</style>
           </div>
         )}
 
