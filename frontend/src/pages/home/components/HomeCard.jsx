@@ -1,4 +1,15 @@
+import { useEffect, useRef } from 'react'
+
 export default function HomeCard({ card, position, dragOffset, isTouching, onClick }) {
+  const cardRef = useRef(null)
+
+  useEffect(() => {
+    const svgs = cardRef.current?.querySelectorAll('svg')
+    svgs?.forEach(svg => {
+      if (position === 'active') svg.unpauseAnimations?.()
+      else svg.pauseAnimations?.()
+    })
+  }, [position])
   const dragging = dragOffset !== 0
   const pressing = isTouching && !dragging
 
@@ -27,6 +38,7 @@ export default function HomeCard({ card, position, dragOffset, isTouching, onCli
 
   return (
     <div
+      ref={cardRef}
       className={`carousel-card ${position}`}
       onClick={onClick}
       style={{
