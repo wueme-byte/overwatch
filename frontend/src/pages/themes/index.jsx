@@ -77,7 +77,7 @@ export default function Themes() {
         position: 'relative', zIndex: 10,
         flex: 1, display: 'flex', flexDirection: 'column',
         alignItems: 'center', justifyContent: 'flex-start',
-        padding: '240px 24px 0',
+        padding: '220px 24px 0',
       }}>
 
         {/* Title */}
