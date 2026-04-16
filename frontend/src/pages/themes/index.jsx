@@ -82,8 +82,8 @@ export default function Themes() {
 
         {/* Title */}
         <h1 style={{
-          fontSize: 58, fontWeight: 900, margin: 0, position: 'relative', top: -20,
-          letterSpacing: '-4px', lineHeight: 0.88,
+          fontSize: 45, fontWeight: 900, margin: 0, position: 'relative', top: -15,
+          letterSpacing: '-4px', lineHeight: 0.88, paddingRight: '4px',
           textAlign: 'center',
           background: 'linear-gradient(150deg, #ffffff 0%, #bae6fd 40%, #38bdf8 75%, #0284c7 100%)',
           WebkitBackgroundClip: 'text',
@@ -99,6 +99,7 @@ export default function Themes() {
           fontSize: 11, margin: '14px 0 0',
           letterSpacing: '0.22em', textTransform: 'uppercase', fontWeight: 500,
           animation: 'fadeUp 0.5s 0.08s both',
+          position: 'relative', top: -15,
         }}>
           hand-picked gift sets
         </p>
@@ -111,6 +112,7 @@ export default function Themes() {
           borderRadius: 100, padding: '5px 12px',
           marginTop: 14,
           animation: 'fadeUp 0.5s 0.15s both',
+          position: 'relative', top: -10,
         }}>
           <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#f97316', boxShadow: '0 0 6px #f97316' }} />
           <span style={{ fontSize: 11, color: '#52525b', letterSpacing: '0.05em' }}>IN PROGRESS</span>
