@@ -256,11 +256,9 @@ export default function CollectionListings({ col, onBack }) {
               fontFamily: 'monospace',
             }}>
               {/* title bar */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 14 }}>
-                <div style={{ width: 6, height: 6, borderRadius: '50%', background: 'rgba(239,68,68,0.5)' }}/>
-                <div style={{ width: 6, height: 6, borderRadius: '50%', background: 'rgba(251,191,36,0.5)' }}/>
-                <div style={{ width: 6, height: 6, borderRadius: '50%', background: 'rgba(74,222,128,0.5)' }}/>
-                <span style={{ marginLeft: 6, fontSize: 10, color: 'rgba(255,255,255,0.15)', letterSpacing: '0.08em' }}>overwatch ~ scan</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 14 }}>
+                <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#a78bfa', boxShadow: '0 0 6px #a78bfa', animation: 'termCursor 1.2s ease-in-out infinite' }}/>
+                <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.15)', letterSpacing: '0.08em' }}>overwatch ~ scan</span>
               </div>
 
               {/* lines */}
