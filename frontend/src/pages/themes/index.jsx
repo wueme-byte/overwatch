@@ -90,7 +90,7 @@ export default function Themes() {
           WebkitTextFillColor: 'transparent',
           animation: 'fadeUp 0.5s 0s both, glow 5s ease-in-out infinite',
         }}>
-          THEMES
+          Themes
         </h1>
 
         {/* Subtitle */}
