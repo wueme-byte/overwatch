@@ -1,8 +1,6 @@
 
-
 services:
   redis:
-  
     image: redis:7-alpine
     restart: always
 
@@ -12,8 +10,6 @@ services:
     ports:
       - "8001:8001"
     env_file: .env
-    environment: 
-       - HTTPS_PROXY=http://iaebFJaedrYXuIhc:kom2WDC6bxP7lKiJ@geo.iproyal.com:12321         
     depends_on:
       - redis
     restart: always
