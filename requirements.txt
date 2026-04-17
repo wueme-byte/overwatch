@@ -5,4 +5,4 @@ apscheduler==3.10.4
 python-dotenv==1.0.1
 fastapi==0.115.0
 uvicorn==0.30.6
-pyfragment
+pyfragment==2026.1.0
