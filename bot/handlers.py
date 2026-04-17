@@ -85,13 +85,6 @@ def make_handlers(redis: Redis):
         keyboard = InlineKeyboardMarkup([
             [
                 InlineKeyboardButton(
-                    "Community",
-                    url="https://t.me/overwatch_gifts",
-                    style="primary"
-                )
-            ],
-            [
-                InlineKeyboardButton(
                     "Start Overwatch",
                     web_app=WebAppInfo(url="https://wueme-byte.github.io/overwatch/"),
                     style="success"
