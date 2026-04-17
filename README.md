@@ -51,6 +51,12 @@ overwatch/
 ├── docker-compose.yml
 ├── requirements.txt
 └── .env.example
+
+frontend/src/pages/
+├── home/           # главная (карусель карточек)
+├── search/         # поиск коллекций + листинги
+├── themes/         # заглушка "Coming soon"
+└── desktop/        # экран для десктоп-браузеров
 ```
 
 ---
@@ -66,7 +72,7 @@ overwatch/
 | `FRAGMENT_STEL_SSID` | ✅ | Cookie с fragment.com |
 | `FRAGMENT_STEL_DT` | ✅ | Cookie с fragment.com |
 | `FRAGMENT_STEL_TOKEN` | ✅ | Cookie с fragment.com |
-| `FRAGMENT_PROXY` | — | Прокси для Fragment (residential, если VPS) |
+| `HTTPS_PROXY` | — | Residential прокси для Fragment (только api контейнер) |
 | `GETGEMS_API_KEY` | — | Bearer токен GetGems |
 | `TONAPI_KEY` | — | TON API ключ |
 | `CACHE_TTL` | — | TTL кэша листингов в сек (default: 600) |
@@ -231,14 +237,27 @@ npm run build
 
 ## Fragment на VPS
 
-Fragment блокирует запросы с IP датацентров (Cloudflare Bot Management). Решение — residential proxy:
+Fragment блокирует запросы с IP датацентров (Cloudflare Bot Management). Решение — residential proxy (IPRoyal).
 
+Добавить в `.env` на сервере:
 ```env
-FRAGMENT_PROXY=http://user:pass@geo.iproyal.com:12321
+HTTPS_PROXY=http://user:pass@geo.iproyal.com:12321
 ```
 
-Также добавить в `docker-compose.yml`:
-```yaml
-environment:
-  - HTTPS_PROXY=http://user:pass@geo.iproyal.com:12321
-```
+> ⚠️ `HTTPS_PROXY` должен быть **только** в `.env`, **не** в `docker-compose.yml`.  
+> В `docker-compose.yml` для `bot` сервиса прокси явно сбрасывается (`HTTPS_PROXY=`), иначе запросы к Telegram API пойдут через прокси и упадут.
+
+## pyfragment
+
+Версия закреплена в `requirements.txt` на `2026.1.0`. **Не менять** — новые версии изменили API и ломают наш Fragment клиент.
+
+## Desktop блокировка
+
+На десктопе Mini App показывает заглушку `pages/desktop/`. Детектится по `hover: hover` + ширина > 768px.  
+Для локальной разработки на десктопе: `http://localhost:5173/overwatch/?dev`
+
+## Бот
+
+**@Overwatch_Gifts_bot** — основной бот.  
+`/start` открывает Mini App через WebApp кнопку.  
+Канал: @overwatch_gifts (кнопка скрыта пока канал маленький).
