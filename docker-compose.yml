@@ -18,6 +18,8 @@ services:
     build: .
     command: python -m bot.main
     env_file: .env
+    environment:
+      - HTTPS_PROXY=
     depends_on:
       - redis
     restart: always
