@@ -2,6 +2,10 @@
 
 Агрегатор листингов Telegram Gifts. Собирает данные с **GetGems** и **Fragment** параллельно, дедуплицирует по лучшей цене и отображает через Telegram Bot и Telegram Mini App.
 
+**Live:** https://overwatchgifts.help  
+**Bot:** @Overwatch_Gifts_bot  
+**Channel:** @overwatch_gifts
+
 ---
 
 ## Возможности
@@ -175,7 +179,7 @@ redis-server
 docker run -d -p 6379:6379 redis:7-alpine
 
 # 4. Запустить API (терминал 1)
-uvicorn api:app --reload --port 8000
+uvicorn api:app --reload --port 8001
 
 # 5. Запустить бота (терминал 2)
 python -m bot.main
@@ -191,10 +195,11 @@ npm install
 
 # Запустить dev сервер
 npm run dev
-# → http://localhost:5173/overwatch/
+# → http://localhost:5173/
+# на десктопе добавь ?dev: http://localhost:5173/?dev
 ```
 
-> По умолчанию фронт ходит на `http://localhost:8000`. Можно переопределить через `VITE_API_URL` в `frontend/.env`.
+> По умолчанию фронт ходит на `http://localhost:8001`. Можно переопределить через `VITE_API_URL` в `frontend/.env`.
 
 ---
 
@@ -221,12 +226,13 @@ docker compose restart api
 docker compose restart bot
 ```
 
-### Фронтенд (GitHub Pages)
+### Фронтенд (GitHub Pages + custom domain)
 
 ```bash
 cd frontend
 npm run build
 # dist/ автоматически деплоится через GitHub Actions на gh-pages ветку
+# Домен: overwatchgifts.help (CNAME файл в frontend/public/CNAME)
 ```
 
 ---
@@ -254,7 +260,7 @@ HTTPS_PROXY=http://user:pass@geo.iproyal.com:12321
 ## Desktop блокировка
 
 На десктопе Mini App показывает заглушку `pages/desktop/`. Детектится по `hover: hover` + ширина > 768px.  
-Для локальной разработки на десктопе: `http://localhost:5173/overwatch/?dev`
+Для локальной разработки на десктопе: `http://localhost:5173/?dev`
 
 ## Бот
 
