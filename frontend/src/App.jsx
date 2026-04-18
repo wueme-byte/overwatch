@@ -14,7 +14,7 @@ export default function App() {
   if (isDesktop()) return <DesktopBlock />
 
   return (
-    <BrowserRouter basename="/overwatch">
+    <BrowserRouter basename="/">
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/search" element={<Search />} />
