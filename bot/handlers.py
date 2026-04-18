@@ -86,7 +86,7 @@ def make_handlers(redis: Redis):
             [
                 InlineKeyboardButton(
                     "Start Overwatch",
-                    web_app=WebAppInfo(url="https://wueme-byte.github.io/overwatch/"),
+                    web_app=WebAppInfo(url="https://overwatchgifts.help/"),
                     style="success"
                 )
             ],
