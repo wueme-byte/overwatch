@@ -7,6 +7,7 @@ def apply_filters(
     min_ton: float | None,
     max_ton: float | None,
     attrs: dict,
+    backdrop: str | None = None,
 ) -> list[NFTListing]:
     result = listings
 
@@ -22,6 +23,9 @@ def apply_filters(
 
     if max_ton is not None:
         result = [l for l in result if float(l.price_ton) <= max_ton]
+
+    if backdrop:
+        result = [l for l in result if l.attributes.get("Backdrop") == backdrop]
 
     for attr_key, attr_val in attrs.items():
         attr_val_lower = attr_val.lower()

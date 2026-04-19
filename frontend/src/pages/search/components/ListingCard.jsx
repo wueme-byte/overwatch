@@ -1,4 +1,8 @@
+import { backdropCss } from '../../../lib/backdropColors'
+
 export default function ListingCard({ item, isBest }) {
+  const backdropName = item.attributes?.Backdrop
+  const backdropColor = backdropName ? backdropCss(backdropName) : null
   const isFragment = item.marketplace === 'Fragment'
   const isAuction = isFragment && item.attributes?.fragment_status === 'On auction'
   const accentColor = isFragment ? 'rgba(251,191,36,0.5)' : 'rgba(56,189,248,0.5)'
@@ -97,36 +101,55 @@ export default function ListingCard({ item, isBest }) {
         </div>
       </div>
 
-      <button
-        onClick={e => {
-          e.preventDefault()
-          e.stopPropagation()
-          const url = `https://t.me/nft/${item.name.replace(/[\s']/g, '').replace('#', '-')}`
-          if (window.Telegram?.WebApp?.openTelegramLink) {
-            window.Telegram.WebApp.openTelegramLink(url)
-          } else {
-            window.open(url)
-          }
-        }}
-        style={{
-          position: 'absolute',
-          left: '27%',
-          top: '68%',
-          transform: 'translateY(-50%)',
-          width: 24, height: 24,
-          borderRadius: '50%',
-          background: 'linear-gradient(145deg, rgba(139,92,246,0.25) 0%, rgba(109,40,217,0.1) 100%)',
-          border: '1px solid rgba(139,92,246,0.4)',
-          boxShadow: '0 0 8px rgba(139,92,246,0.3), 0 2px 4px rgba(0,0,0,0.4)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          cursor: 'pointer', padding: 0,
-        }}
-      >
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(196,181,253,0.85)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-          <circle cx="12" cy="12" r="3"/>
-        </svg>
-      </button>
+      <div style={{
+        position: 'absolute',
+        left: '27%',
+        top: '68%',
+        transform: 'translateY(-50%)',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 6,
+      }}>
+        <button
+          onClick={e => {
+            e.preventDefault()
+            e.stopPropagation()
+            const url = `https://t.me/nft/${item.name.replace(/[\s']/g, '').replace('#', '-')}`
+            if (window.Telegram?.WebApp?.openTelegramLink) {
+              window.Telegram.WebApp.openTelegramLink(url)
+            } else {
+              window.open(url)
+            }
+          }}
+          style={{
+            width: 24, height: 24,
+            borderRadius: '50%',
+            background: 'linear-gradient(145deg, rgba(139,92,246,0.25) 0%, rgba(109,40,217,0.1) 100%)',
+            border: '1px solid rgba(139,92,246,0.4)',
+            boxShadow: '0 0 8px rgba(139,92,246,0.3), 0 2px 4px rgba(0,0,0,0.4)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            cursor: 'pointer', padding: 0,
+          }}
+        >
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(196,181,253,0.85)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+            <circle cx="12" cy="12" r="3"/>
+          </svg>
+        </button>
+
+        {backdropColor && (
+          <div
+            title={backdropName}
+            style={{
+              width: 17, height: 17,
+              borderRadius: '50%',
+              background: backdropColor,
+              border: '1px solid rgba(0,0,0,0.5)',
+              boxShadow: `0 0 8px rgba(139,92,246,0.3), 0 0 6px ${backdropColor}88`,
+            }}
+          />
+        )}
+      </div>
     </a>
   )
 }

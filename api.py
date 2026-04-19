@@ -55,6 +55,7 @@ def _listing_dict(l) -> dict:
 async def get_listings(
     collection: str = Query(..., description="Имя или адрес коллекции"),
     model: str | None = Query(None),
+    backdrop: str | None = Query(None),
     min_ton: float | None = Query(None),
     max_ton: float | None = Query(None),
     page: int = Query(1, ge=1),
@@ -68,12 +69,19 @@ async def get_listings(
         raise HTTPException(status_code=500, detail=str(e))
 
     model_images: dict[str, str | None] = {}
+    all_backdrops: list[str] = []
+    seen_backdrops: set[str] = set()
     for l in listings:
         if l.model and l.model not in model_images:
             model_images[l.model] = l.image_url
+        b = l.attributes.get("Backdrop")
+        if b and b not in seen_backdrops:
+            seen_backdrops.add(b)
+            all_backdrops.append(b)
     all_models = [{"name": m, "image": model_images[m]} for m in sorted(model_images)]
+    all_backdrops.sort()
 
-    filtered = apply_filters(listings, model, min_ton, max_ton, attrs={})
+    filtered = apply_filters(listings, model, min_ton, max_ton, attrs={}, backdrop=backdrop)
 
     total = len(filtered)
     start = (page - 1) * page_size
@@ -85,6 +93,7 @@ async def get_listings(
         "page_size": page_size,
         "items": [_listing_dict(l) for l in page_items],
         "models": all_models,
+        "backdrops": all_backdrops,
     }
 
 
