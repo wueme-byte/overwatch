@@ -111,6 +111,21 @@ class NFTOrchestrator:
 
         print(f"[Orchestrator] Курс TON: ${ton_price}")
 
+        # Обогащаем Fragment листинги атрибутами из GetGems по совпадению имени
+        if not isinstance(gg_results, Exception) and not isinstance(frag_results, Exception):
+            gg_attrs_by_name: dict[str, dict] = {
+                l.name: l.attributes for l in gg_results if l.attributes.get("Backdrop")
+            }
+            enriched_frag = []
+            for l in frag_results:
+                if not l.attributes.get("Backdrop") and l.name in gg_attrs_by_name:
+                    gg_a = gg_attrs_by_name[l.name]
+                    merged_attrs = {**gg_a, **l.attributes}
+                    merged_model = l.model or gg_a.get("Model")
+                    l = NFTListing(**{**vars(l), "attributes": merged_attrs, "model": merged_model})
+                enriched_frag.append(l)
+            frag_results = enriched_frag
+
         all_listings: list[NFTListing] = []
         for result in (gg_results, frag_results):
             if isinstance(result, Exception):
