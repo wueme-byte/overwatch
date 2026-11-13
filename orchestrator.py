@@ -13,6 +13,7 @@ if settings.FRAGMENT_PROXY:
 
 CACHE_TTL = settings.CACHE_TTL
 TON_PRICE_FALLBACK = Decimal("3.0")
+COLLECTIONS_CACHE_KEY = "nft:collections"
 
 
 async def _fetch_ton_price(session: aiohttp.ClientSession) -> Decimal:
@@ -55,6 +56,27 @@ class NFTOrchestrator:
     def _cache_key(self, slug: str) -> str:
         return f"nft:listings:{slug}"
 
+    async def _resolve_collection_name(self, gg: GetGemsClient, address: str) -> str:
+        """Имя коллекции по адресу: сперва кэш /collections, затем GetGems.
+
+        Fragment ищет подарки по имени коллекции, а не по адресу, поэтому без
+        настоящего имени его фетчер бесполезен. Возвращает "" если имя не найдено.
+        """
+        try:
+            cached = await self.redis.get(COLLECTIONS_CACHE_KEY)
+            if cached:
+                for col in json.loads(cached):
+                    if col.get("address") == address:
+                        return col.get("name") or ""
+        except Exception as e:
+            print(f"[Orchestrator] Кэш коллекций недоступен: {e}")
+
+        try:
+            return await gg.name_by_address(address)
+        except Exception as e:
+            print(f"[Orchestrator] Не удалось определить имя коллекции: {e}")
+            return ""
+
     async def fetch_listings(self, collection_slug: str, force_refresh: bool = False) -> list[NFTListing]:
         key = self._cache_key(collection_slug)
 
@@ -84,24 +106,29 @@ class NFTOrchestrator:
             # если передан адрес — используем напрямую, иначе ищем по имени
             if collection_slug.startswith(("EQ", "UQ")) and len(collection_slug) > 40:
                 col_addr = collection_slug
-                col_name = col_addr[:10] + "..."
+                col_name = await self._resolve_collection_name(gg, col_addr)
             else:
                 result = await gg.search_collection(collection_slug)
                 if not result:
                     raise ValueError(f"Коллекция «{collection_slug}» не найдена")
                 col_addr, col_name = result
 
+            display_name = col_name or col_addr[:10] + "..."
+
             tasks = [
-                gg.get_listings(col_addr, col_name),
+                gg.get_listings(col_addr, display_name),
                 _fetch_ton_price(session),
             ]
 
             frag_cookies = get_fragment_cookies()
-            if frag_cookies:
+            if not frag_cookies:
+                print("[Orchestrator] Fragment cookies not configured — skipping Fragment")
+            elif not col_name:
+                # без имени Fragment вернёт чужие подарки — лучше пропустить источник
+                print(f"[Orchestrator] Имя коллекции {col_addr[:10]}... не определено — Fragment пропущен")
+            else:
                 frag = FragmentClient(frag_cookies)
                 tasks.append(asyncio.wait_for(frag.get_listings(col_addr, col_name), timeout=15.0))
-            else:
-                print("[Orchestrator] Fragment cookies not configured — skipping Fragment")
 
             results = await asyncio.gather(*tasks, return_exceptions=True)
 

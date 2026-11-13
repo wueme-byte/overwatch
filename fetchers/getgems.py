@@ -20,18 +20,9 @@ class GetGemsClient:
             "Accept": "application/json",
         } if api_key else {"Accept": "application/json"}
 
-    async def search_collection(self, query: str) -> tuple[str, str] | None:
-        """Ищет коллекцию по имени среди gift коллекций. Возвращает (address, name) или None.
-
-        Приоритет совпадений: точное → starts with → contains.
-        Апострофы нормализуются перед сравнением.
-        """
+    async def _iter_collections(self):
+        """Постранично отдаёт gift-коллекции GetGems."""
         cursor = None
-        query_norm = _normalize(query)
-
-        exact: tuple[str, str] | None = None
-        starts: tuple[str, str] | None = None
-        contains: tuple[str, str] | None = None
 
         while True:
             params = {"limit": 100}
@@ -52,21 +43,43 @@ class GetGemsClient:
             cursor = response.get("cursor")
 
             for col in items:
-                name = col.get("name") or ""
-                name_norm = _normalize(name)
-                pair = (col["address"], name)
-
-                if name_norm == query_norm:
-                    return pair  # точное — сразу возвращаем
-                if starts is None and name_norm.startswith(query_norm):
-                    starts = pair
-                if contains is None and query_norm in name_norm:
-                    contains = pair
+                yield col
 
             if not cursor or len(items) < 100:
                 break
 
+    async def search_collection(self, query: str) -> tuple[str, str] | None:
+        """Ищет коллекцию по имени среди gift коллекций. Возвращает (address, name) или None.
+
+        Приоритет совпадений: точное → starts with → contains.
+        Апострофы нормализуются перед сравнением.
+        """
+        query_norm = _normalize(query)
+
+        exact: tuple[str, str] | None = None
+        starts: tuple[str, str] | None = None
+        contains: tuple[str, str] | None = None
+
+        async for col in self._iter_collections():
+            name = col.get("name") or ""
+            name_norm = _normalize(name)
+            pair = (col["address"], name)
+
+            if name_norm == query_norm:
+                return pair  # точное — сразу возвращаем
+            if starts is None and name_norm.startswith(query_norm):
+                starts = pair
+            if contains is None and query_norm in name_norm:
+                contains = pair
+
         return exact or starts or contains
+
+    async def name_by_address(self, address: str) -> str:
+        """Обратный поиск: имя коллекции по её адресу. Пустая строка, если не нашли."""
+        async for col in self._iter_collections():
+            if col.get("address") == address:
+                return col.get("name") or ""
+        return ""
 
     async def get_listings(self, collection_address: str, collection_name: str) -> list[NFTListing]:
         listings: list[NFTListing] = []
