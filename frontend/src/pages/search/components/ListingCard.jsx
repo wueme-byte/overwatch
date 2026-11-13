@@ -114,11 +114,15 @@ export default function ListingCard({ item, isBest }) {
           onClick={e => {
             e.preventDefault()
             e.stopPropagation()
-            const url = `https://t.me/nft/${item.name.replace(/[\s']/g, '').replace('#', '-')}`
-            if (window.Telegram?.WebApp?.openTelegramLink) {
-              window.Telegram.WebApp.openTelegramLink(url)
+            // Слаг подарка: "Voodoo Doll #11490" → "VoodooDoll-11490"
+            const slug = item.name.replace(/[\s']/g, '').replace('#', '-')
+            if (window.Telegram?.WebApp) {
+              // openTelegramLink шлёт клиенту web_app_open_tg_link, а его обработчик
+              // подарочные ссылки не разбирает — нативно открывает только схема tg://,
+              // та же, что стоит под кнопкой «View in Telegram» на самой странице t.me.
+              window.location.href = `tg://nft?slug=${slug}`
             } else {
-              window.open(url)
+              window.open(`https://t.me/nft/${slug}`, '_blank')
             }
           }}
           style={{
