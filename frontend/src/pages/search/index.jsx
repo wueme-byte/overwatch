@@ -64,15 +64,14 @@ export default function Search() {
           top: 0,
           zIndex: 20,
           paddingTop: 13,
-          paddingBottom: 30,
+          paddingBottom: 12,
           background: 'linear-gradient(180deg, rgba(88,28,220,0.18) 0%, rgba(60,10,160,0.08) 100%)',
           backdropFilter: 'blur(12px)',
           borderBottom: '1px solid rgba(139,92,246,0.15)',
         }}
       >
-        <div className="flex items-center" style={{ marginBottom: 40, paddingLeft: 15 }}>
+        <div className="flex items-center justify-center gap-2" style={{ marginBottom: 14 }}>
           <h1 style={{
-            position: 'relative', left: 110, top: 54,
             fontSize: 26,
             fontWeight: 800,
             letterSpacing: '-0.5px',
@@ -84,7 +83,6 @@ export default function Search() {
           }}>Gifts</h1>
           {!loadingCols && (
             <span style={{
-              position: 'relative', left: 120, top: 54,
               fontSize: 11,
               fontWeight: 500,
               color: '#a78bfa',
@@ -97,7 +95,7 @@ export default function Search() {
           )}
         </div>
 
-        <div className="flex items-center gap-2" style={{ paddingLeft: 15, position: 'relative', top: 20 }}>
+        <div className="flex items-center gap-2" style={{ paddingLeft: 15 }}>
           <button
             onClick={() => { setExiting(true); setTimeout(() => navigate(-1), 300) }}
             className="back-btn"
