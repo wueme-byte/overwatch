@@ -25,6 +25,22 @@ const BG = (
   </div>
 )
 
+// Новинки: поднимаются в начало списка и получают плашку NEW.
+// Порядок в массиве = порядок на экране. Сравнение по основе слова,
+// чтобы пережить переименование вида «Myth Mask» → «Myth Masks».
+const NEW_COLLECTIONS = ['resistance dog', 'myth mask']
+
+const isNewCollection = col =>
+  NEW_COLLECTIONS.some(n => col.name.toLowerCase().includes(n))
+
+// Новинки получают -2 и -1 (в порядке NEW_COLLECTIONS), Toy Bears уезжает в конец
+const collectionRank = col => {
+  const name = col.name.toLowerCase()
+  const i = NEW_COLLECTIONS.findIndex(n => name.includes(n))
+  if (i !== -1) return i - NEW_COLLECTIONS.length
+  return name.includes('toy bear') ? 1 : 0
+}
+
 export default function Search() {
   const navigate = useNavigate()
 
@@ -43,11 +59,7 @@ export default function Search() {
 
   const filtered = collections
     .filter(c => c.name.toLowerCase().includes(filter.toLowerCase().trim()))
-    .sort((a, b) => {
-      const aLast = a.name.toLowerCase().includes('toy bear') ? 1 : 0
-      const bLast = b.name.toLowerCase().includes('toy bear') ? 1 : 0
-      return aLast - bLast
-    })
+    .sort((a, b) => collectionRank(a) - collectionRank(b))
 
   if (selected) {
     return <CollectionListings col={selected} onBack={() => { setSelected(null); setFilter('') }} />
@@ -131,6 +143,7 @@ export default function Search() {
               <CollectionCard
                 key={col.address || col.name}
                 col={col}
+                isNew={isNewCollection(col)}
                 onClick={() => setSelected(col)}
               />
             ))}

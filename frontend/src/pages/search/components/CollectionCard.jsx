@@ -18,13 +18,20 @@ function CollectionAvatar({ col }) {
   )
 }
 
-export default function CollectionCard({ col, onClick }) {
+export default function CollectionCard({ col, isNew, onClick }) {
   return (
     <button
       onClick={onClick}
       className="relative flex flex-col active:scale-[0.94] transition-transform w-full"
     >
-      <div className="relative overflow-hidden w-full" style={{ borderRadius: 16 }}>
+      <div className="relative overflow-hidden w-full" style={{
+        borderRadius: 16,
+        // Новинки обводятся тем же зелёным, что и плашка NEW
+        ...(isNew && {
+          border: '1.5px solid rgba(16,185,129,0.9)',
+          boxShadow: '0 0 10px rgba(16,185,129,0.35)',
+        }),
+      }}>
 
           {/* картинка */}
           <div className="w-full aspect-square relative" style={{
@@ -63,6 +70,21 @@ export default function CollectionCard({ col, onClick }) {
             </span>
           </div>
 
+          {isNew && (
+            <div className="absolute pointer-events-none" style={{
+              top: 4, right: 4,
+              fontSize: 8,
+              fontWeight: 800,
+              letterSpacing: '0.5px',
+              textTransform: 'uppercase',
+              padding: '2px 5px',
+              borderRadius: 999,
+              color: '#ffffff',
+              background: 'linear-gradient(135deg, rgba(16,185,129,0.95) 0%, rgba(5,150,105,0.95) 100%)',
+              border: '1px solid rgba(110,231,183,0.5)',
+              boxShadow: '0 0 8px rgba(16,185,129,0.45)',
+            }}>New</div>
+          )}
 
       </div>
     </button>
