@@ -27,7 +27,7 @@ const ThemeIcon = () => (
 const cards = [
   {
     id: 'search', title: 'Search', path: '/search',
-    description: 'Find the best price across GetGems & Fragment by collection or model',
+    description: 'Find the best price across GetGems, Fragment, MRKT & Portals by collection or model',
     icon: <SearchIcon />, tag: 'Collection · Model · Price',
     color2: '#a78bfa',
     bg: 'linear-gradient(145deg, #110822 0%, #0d0520 60%, #080410 100%)',

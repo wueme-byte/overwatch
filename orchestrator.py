@@ -14,6 +14,9 @@ if settings.FRAGMENT_PROXY:
 CACHE_TTL = settings.CACHE_TTL
 TON_PRICE_FALLBACK = Decimal("3.0")
 COLLECTIONS_CACHE_KEY = "nft:collections"
+# Запасная копия листингов: когда свежий кэш (CACHE_TTL) истёк, отдаём её сразу,
+# а свежие данные подтягиваем в фоне — чтобы пользователь не ждал полную загрузку.
+STALE_TTL = 6 * 3600
 
 
 async def _fetch_ton_price(session: aiohttp.ClientSession) -> Decimal:
@@ -56,6 +59,23 @@ class NFTOrchestrator:
     def _cache_key(self, slug: str) -> str:
         return f"nft:listings:{slug}"
 
+    def _stale_key(self, slug: str) -> str:
+        return f"nft:listings:stale:{slug}"
+
+    def _start_fetch(self, collection_slug: str) -> asyncio.Task:
+        """Запускает загрузку коллекции, если она ещё не идёт; возвращает задачу."""
+        task = self._inflight.get(collection_slug)
+        if task is None:
+            task = asyncio.ensure_future(self._do_fetch(collection_slug))
+            self._inflight[collection_slug] = task
+
+            def _done(t: asyncio.Task, slug=collection_slug):
+                self._inflight.pop(slug, None)
+                if not t.cancelled() and t.exception():
+                    print(f"[Orchestrator] Загрузка {slug} упала: {t.exception()}")
+            task.add_done_callback(_done)
+        return task
+
     async def _resolve_collection_name(self, gg: GetGemsClient, address: str) -> str:
         """Имя коллекции по адресу: сперва кэш /collections, затем GetGems.
 
@@ -77,6 +97,34 @@ class NFTOrchestrator:
             print(f"[Orchestrator] Не удалось определить имя коллекции: {e}")
             return ""
 
+    async def _getgems_with_twins(self, gg: GetGemsClient, col_addr: str, display_name: str) -> list[NFTListing]:
+        """Лоты GetGems по коллекции плюс лоты её двойников (см. split_twins).
+
+        Сбой основной коллекции пробрасывается, сбой двойника только логируется.
+        """
+        try:
+            twins = await gg.twin_addresses(col_addr)
+        except Exception as e:
+            print(f"[Orchestrator] Не удалось получить двойников {col_addr[:10]}...: {e}")
+            twins = []
+
+        results = await asyncio.gather(
+            gg.get_listings(col_addr, display_name),
+            *(gg.get_listings(t, display_name, report_address=col_addr) for t in twins),
+            return_exceptions=True,
+        )
+        if isinstance(results[0], Exception):
+            raise results[0]
+
+        listings = list(results[0])
+        for twin, res in zip(twins, results[1:]):
+            if isinstance(res, Exception):
+                print(f"[Orchestrator] Двойник {twin[:10]}... не загрузился: {res}")
+            else:
+                print(f"[Orchestrator] Двойник {twin[:10]}...: +{len(res)} лотов")
+                listings.extend(res)
+        return listings
+
     async def fetch_listings(self, collection_slug: str, force_refresh: bool = False) -> list[NFTListing]:
         key = self._cache_key(collection_slug)
 
@@ -86,17 +134,17 @@ class NFTOrchestrator:
                 raw = json.loads(cached)
                 return [_deserialize_listing(item) for item in raw]
 
-        # если уже идёт запрос для этой коллекции — ждём его результата
+            # свежего нет — отдаём запасную копию, обновление идёт в фоне
+            stale = await self.redis.get(self._stale_key(collection_slug))
+            if stale:
+                self._start_fetch(collection_slug)
+                return [_deserialize_listing(item) for item in json.loads(stale)]
+
+        # данных нет совсем (или force_refresh) — ждём загрузку;
+        # если она уже идёт для этой коллекции, ждём её же
         if collection_slug in self._inflight:
             print(f"[Orchestrator] Waiting for inflight request: {collection_slug}")
-            return await asyncio.shield(self._inflight[collection_slug])
-
-        task = asyncio.ensure_future(self._do_fetch(collection_slug))
-        self._inflight[collection_slug] = task
-        try:
-            return await task
-        finally:
-            self._inflight.pop(collection_slug, None)
+        return await asyncio.shield(self._start_fetch(collection_slug))
 
     async def _do_fetch(self, collection_slug: str) -> list[NFTListing]:
         key = self._cache_key(collection_slug)
@@ -116,7 +164,7 @@ class NFTOrchestrator:
             display_name = col_name or col_addr[:10] + "..."
 
             tasks = [
-                gg.get_listings(col_addr, display_name),
+                self._getgems_with_twins(gg, col_addr, display_name),
                 _fetch_ton_price(session),
             ]
 
@@ -172,8 +220,7 @@ class NFTOrchestrator:
 
         deduped = sorted(seen.values(), key=lambda x: _usd_sort_key(x, ton_price))
 
-        await self.redis.setex(
-            key, CACHE_TTL,
-            json.dumps([vars(l) for l in deduped], default=str),
-        )
+        payload = json.dumps([vars(l) for l in deduped], default=str)
+        await self.redis.setex(key, CACHE_TTL, payload)
+        await self.redis.setex(self._stale_key(collection_slug), STALE_TTL, payload)
         return deduped

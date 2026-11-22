@@ -8,6 +8,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from redis.asyncio import from_url
 from orchestrator import NFTOrchestrator
 from filters import apply_filters
+from fetchers.getgems import split_twins
+from rarity import model_rarity, load_seed
 from config.settings import settings
 
 COLLECTIONS_CACHE_KEY = "nft:collections"
@@ -22,6 +24,11 @@ orchestrator = NFTOrchestrator(redis)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # заранее собранная редкость моделей (rarity_seed.json) — сразу в Redis
+    try:
+        await load_seed(redis)
+    except Exception as e:
+        print(f"[Rarity] seed not loaded: {e}", flush=True)
     yield
     await redis.aclose()
 
@@ -54,8 +61,9 @@ def _listing_dict(l) -> dict:
 @app.get("/listings")
 async def get_listings(
     collection: str = Query(..., description="Имя или адрес коллекции"),
-    model: str | None = Query(None),
-    backdrop: str | None = Query(None),
+    # можно несколько: ?model=A&model=B — лоты любой из выбранных моделей
+    model: list[str] | None = Query(None),
+    backdrop: list[str] | None = Query(None),
     min_ton: float | None = Query(None),
     max_ton: float | None = Query(None),
     page: int = Query(1, ge=1),
@@ -97,6 +105,21 @@ async def get_listings(
     }
 
 
+@app.get("/rarity")
+async def get_rarity(collection: str = Query(...)):
+    """Редкость моделей коллекции: {"Hue Jester": "3%", ...}.
+    Отдельно от /listings: первый раз собирается несколько секунд, дальше из Redis."""
+    try:
+        listings = await orchestrator.fetch_listings(collection)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    if not listings:
+        return {}
+    return await model_rarity(redis, listings[0].collection_name, listings)
+
+
 @app.get("/collections")
 async def get_collections():
     cached = await redis.get(COLLECTIONS_CACHE_KEY)
@@ -104,6 +127,7 @@ async def get_collections():
         return json.loads(cached)
 
     collections = []
+    raw_cols: list[dict] = []
     cursor = None
     headers = {"Accept": "application/json"}
     if settings.GETGEMS_API_KEY:
@@ -129,16 +153,21 @@ async def get_collections():
             items = response.get("items") or []
             cursor = response.get("cursor")
 
-            for col in items:
-                sizes = col.get("imageSizes") or {}
-                collections.append({
-                    "name": col.get("name", ""),
-                    "address": col.get("address", ""),
-                    "image": sizes.get("352") or sizes.get("96") or col.get("image") or None,
-                })
+            raw_cols.extend(items)
 
             if not cursor or len(items) < 100:
                 break
+
+    # двойники (коллекции-копии на релеере GetGems) не показываем:
+    # их лоты подмешиваются в основную коллекцию в orchestrator
+    mains, _ = split_twins(raw_cols)
+    for col in mains:
+        sizes = col.get("imageSizes") or {}
+        collections.append({
+            "name": col.get("name", ""),
+            "address": col.get("address", ""),
+            "image": sizes.get("352") or sizes.get("96") or col.get("image") or None,
+        })
 
     await redis.setex(COLLECTIONS_CACHE_KEY, COLLECTIONS_CACHE_TTL, json.dumps(collections))
     return collections

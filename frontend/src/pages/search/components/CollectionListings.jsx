@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
-import { fetchListings } from '../../../api/listings'
-import ListingCard from './ListingCard'
+import { fetchListings, fetchRarity } from '../../../api/listings'
+import ListingCard, { rarityColor, rarityRank } from './ListingCard'
+import ModelsSheet from './ModelsSheet'
 import { backdropCss } from '../../../lib/backdropColors'
 
 function CollectionAvatar({ col }) {
@@ -61,20 +62,63 @@ export default function CollectionListings({ col, onBack }) {
   const [page, setPage]                     = useState(1)
   const [models, setModels]                 = useState([])
   const [backdrops, setBackdrops]           = useState([])
-  const [modelFilter, setModelFilter]       = useState(null)
-  const [backdropFilter, setBackdropFilter] = useState(null)
+  // мультивыбор: массивы выбранных моделей/цветов; пустой массив = «все»
+  const [modelFilter, setModelFilter]       = useState([])
+  const [backdropFilter, setBackdropFilter] = useState([])
   const [dropdownOpen, setDropdownOpen]     = useState(false)
   const [backdropOpen, setBackdropOpen]     = useState(false)
   const [loading, setLoading]               = useState(true)
   const [error, setError]                   = useState(null)
   const scrollRef                           = useRef(null)
+  const [rarity, setRarity]                 = useState({})
+  const [sheetModel, setSheetModel]         = useState(null)   // открыта шторка моделей (для этой модели)
+
+  // редкость грузим отдельно, чтобы не задерживать список.
+  // Сервер собирает её со страниц t.me и не всегда успевает за раз —
+  // пока не у всех моделей есть редкость, переспрашиваем (каждые 5 с, до 2 минут)
+  const modelsRef = useRef([])
+  modelsRef.current = models
+  useEffect(() => {
+    let alive = true, tries = 0, timer
+    setRarity({})
+    const again = () => { if (alive && ++tries < 24) timer = setTimeout(load, 5000) }
+    const load = () => fetchRarity(col.name)
+      .then(r => {
+        if (!alive) return
+        r = r || {}
+        setRarity(r)
+        const ms = modelsRef.current
+        if (ms.length === 0 || ms.some(m => !(m.name in r))) again()
+      })
+      .catch(again)
+    load()
+    return () => { alive = false; clearTimeout(timer) }
+  }, [col.name])
 
   const totalPages = Math.ceil(total / PAGE_SIZE)
+
+  // иконка модели без фона (та же, что в фильтре по модели)
+  // Источники по порядку: иконка GetGems; если её нет (у новых крафтовых моделей
+  // GetGems отдаёт 403) — картинка модели с cdn.changes.tg. Там папка названа по
+  // имени подарка в единственном числе ("Myth Mask"), берём его из имени лота.
+  const modelImageUrl = name => col.address && name
+    ? `https://ddejfvww7sqtk.cloudfront.net/images/attrs/${col.address}/${btoa(unescape(encodeURIComponent(name)))}.webp`
+    : null
+  const giftBase = (items?.[0]?.name || '').split(' #')[0]
+  const modelImageFallback = name => giftBase && name
+    ? `https://cdn.changes.tg/gifts/models/${encodeURIComponent(giftBase)}/png/${encodeURIComponent(name)}.png`
+    : null
+  const modelImageSources = name => [modelImageUrl(name), modelImageFallback(name)].filter(Boolean)
+
+  // в фильтре модели идут от самой редкой к обычной; пока редкость
+  // не пришла (или её нет) — такие модели в конце, по алфавиту
+  const rank = name => rarityRank(rarity[name])
+  const sortedModels = [...models].sort((a, b) => (rank(a.name) - rank(b.name)) || a.name.localeCompare(b.name))
 
   useEffect(() => {
     setLoading(true)
     setError(null)
-    fetchListings({ collection: col.name, page, pageSize: PAGE_SIZE, model: modelFilter || undefined, backdrop: backdropFilter || undefined })
+    fetchListings({ collection: col.name, page, pageSize: PAGE_SIZE, model: modelFilter, backdrop: backdropFilter })
       .then(data => {
         setItems(data.items)
         setTotal(data.total)
@@ -86,21 +130,37 @@ export default function CollectionListings({ col, onBack }) {
     scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' })
   }, [col.name, page, modelFilter, backdropFilter])
 
+  // null — сбросить («All …») и закрыть список; значение — добавить/убрать,
+  // список остаётся открытым, чтобы можно было выбрать ещё
+  const toggle = (arr, v) => arr.includes(v) ? arr.filter(x => x !== v) : [...arr, v]
+
   function handleModelFilter(m) {
-    setModelFilter(m)
+    setModelFilter(prev => m === null ? [] : toggle(prev, m))
     setPage(1)
-    setDropdownOpen(false)
+    if (m === null) setDropdownOpen(false)
   }
 
   function handleBackdropFilter(b) {
-    setBackdropFilter(b)
+    setBackdropFilter(prev => b === null ? [] : toggle(prev, b))
     setPage(1)
-    setBackdropOpen(false)
+    if (b === null) setBackdropOpen(false)
   }
 
   return (
     <div style={{ background: '#080808', height: '100svh', display: 'flex', flexDirection: 'column', position: 'relative', overflow: 'hidden' }}>
       {BG}
+
+      {sheetModel && (
+        <ModelsSheet
+          title={col.name}
+          rarity={rarity}
+          available={models.map(m => m.name)}
+          selected={sheetModel}
+          imageSources={modelImageSources}
+          onPick={m => { setModelFilter([m]); setPage(1); setSheetModel(null) }}
+          onClose={() => setSheetModel(null)}
+        />
+      )}
 
       {/* ── шапка ── */}
       <div style={{
@@ -175,17 +235,27 @@ export default function CollectionListings({ col, onBack }) {
                   style={{
                     display: 'flex', alignItems: 'center', gap: 6,
                     padding: '5px 10px', borderRadius: 999,
-                    background: backdropFilter ? 'rgba(139,92,246,0.2)' : 'rgba(139,92,246,0.12)',
-                    border: `1px solid ${backdropFilter ? 'rgba(139,92,246,0.45)' : 'rgba(139,92,246,0.25)'}`,
+                    background: backdropFilter.length ? 'rgba(139,92,246,0.2)' : 'rgba(139,92,246,0.12)',
+                    border: `1px solid ${backdropFilter.length ? 'rgba(139,92,246,0.45)' : 'rgba(139,92,246,0.25)'}`,
                     color: '#a78bfa', fontSize: 12, fontWeight: 500, cursor: 'pointer',
                   }}
                 >
-                  {backdropFilter ? (
-                    <div style={{
-                      width: 11, height: 11, borderRadius: '50%', flexShrink: 0,
-                      background: backdropCss(backdropFilter),
-                      boxShadow: `0 0 6px ${backdropCss(backdropFilter)}88`,
-                    }} />
+                  {backdropFilter.length ? (
+                    // выбранные цвета внахлёст (до 3), дальше — «+N»
+                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                      {backdropFilter.slice(0, 3).map((b, i) => (
+                        <div key={b} style={{
+                          width: 11, height: 11, borderRadius: '50%', flexShrink: 0,
+                          marginLeft: i ? -4 : 0,
+                          background: backdropCss(b),
+                          border: '1px solid #000',
+                          boxShadow: `0 0 6px ${backdropCss(b)}88`,
+                        }} />
+                      ))}
+                      {backdropFilter.length > 3 && (
+                        <span style={{ marginLeft: 4, fontSize: 11 }}>+{backdropFilter.length - 3}</span>
+                      )}
+                    </div>
                   ) : (
                     <>
                       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -210,8 +280,8 @@ export default function CollectionListings({ col, onBack }) {
                   style={{
                     display: 'flex', alignItems: 'center', gap: 6,
                     padding: '5px 10px', borderRadius: 999,
-                    background: modelFilter ? 'rgba(139,92,246,0.2)' : 'rgba(139,92,246,0.12)',
-                    border: `1px solid ${modelFilter ? 'rgba(139,92,246,0.45)' : 'rgba(139,92,246,0.25)'}`,
+                    background: modelFilter.length ? 'rgba(139,92,246,0.2)' : 'rgba(139,92,246,0.12)',
+                    border: `1px solid ${modelFilter.length ? 'rgba(139,92,246,0.45)' : 'rgba(139,92,246,0.25)'}`,
                     color: '#a78bfa', fontSize: 12, fontWeight: 500, cursor: 'pointer',
                   }}
                 >
@@ -220,7 +290,11 @@ export default function CollectionListings({ col, onBack }) {
                     <line x1="8" y1="12" x2="16" y2="12"/>
                     <line x1="11" y1="18" x2="13" y2="18"/>
                   </svg>
-                  <span>{modelFilter || 'Model'}</span>
+                  <span>{
+                    modelFilter.length === 0 ? 'Model'
+                      : modelFilter.length === 1 ? modelFilter[0]
+                      : `Models · ${modelFilter.length}`
+                  }</span>
                   <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round">
                     <polyline points={dropdownOpen ? '18 15 12 9 6 15' : '6 9 12 15 18 9'}/>
                   </svg>
@@ -230,6 +304,14 @@ export default function CollectionListings({ col, onBack }) {
             </div>
           )}
         </div>
+
+        {/* тап мимо открытого списка закрывает его (и не открывает карточку под ним) */}
+        {(dropdownOpen || backdropOpen) && (
+          <div
+            onClick={() => { setDropdownOpen(false); setBackdropOpen(false) }}
+            style={{ position: 'fixed', inset: 0, zIndex: 25 }}
+          />
+        )}
 
         {/* дропдаун цвета фона */}
         {backdropOpen && (
@@ -246,8 +328,8 @@ export default function CollectionListings({ col, onBack }) {
               onClick={() => handleBackdropFilter(null)}
               style={{
                 width: '100%', textAlign: 'left', padding: '11px 16px', fontSize: 13,
-                color: !backdropFilter ? '#a78bfa' : 'rgba(255,255,255,0.55)',
-                background: !backdropFilter ? 'rgba(139,92,246,0.1)' : 'transparent',
+                color: !backdropFilter.length ? '#a78bfa' : 'rgba(255,255,255,0.55)',
+                background: !backdropFilter.length ? 'rgba(139,92,246,0.1)' : 'transparent',
                 borderBottom: '1px solid rgba(255,255,255,0.05)',
                 cursor: 'pointer',
                 display: 'flex', alignItems: 'center', gap: 10,
@@ -258,7 +340,7 @@ export default function CollectionListings({ col, onBack }) {
                 background: 'conic-gradient(#f59e0b, #50c878, #007fff, #bf00ff, #ff4040, #f59e0b)',
               }} />
               <span style={{ flex: 1 }}>All colors</span>
-              {!backdropFilter && (
+              {!backdropFilter.length && (
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <polyline points="20 6 9 17 4 12"/>
                 </svg>
@@ -270,8 +352,8 @@ export default function CollectionListings({ col, onBack }) {
                 onClick={() => handleBackdropFilter(b)}
                 style={{
                   width: '100%', textAlign: 'left', padding: '8px 16px', fontSize: 13,
-                  color: backdropFilter === b ? '#a78bfa' : 'rgba(255,255,255,0.55)',
-                  background: backdropFilter === b ? 'rgba(139,92,246,0.1)' : 'transparent',
+                  color: backdropFilter.includes(b) ? '#a78bfa' : 'rgba(255,255,255,0.55)',
+                  background: backdropFilter.includes(b) ? 'rgba(139,92,246,0.1)' : 'transparent',
                   borderBottom: i < backdrops.length - 1 ? '1px solid rgba(255,255,255,0.05)' : 'none',
                   cursor: 'pointer',
                   display: 'flex', alignItems: 'center', gap: 10,
@@ -284,7 +366,7 @@ export default function CollectionListings({ col, onBack }) {
                   boxShadow: `0 0 6px ${backdropCss(b)}55`,
                 }} />
                 <span style={{ flex: 1 }}>{b}</span>
-                {backdropFilter === b && (
+                {backdropFilter.includes(b) && (
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                     <polyline points="20 6 9 17 4 12"/>
                   </svg>
@@ -309,41 +391,57 @@ export default function CollectionListings({ col, onBack }) {
               onClick={() => handleModelFilter(null)}
               style={{
                 width: '100%', textAlign: 'left', padding: '11px 16px', fontSize: 13,
-                color: !modelFilter ? '#a78bfa' : 'rgba(255,255,255,0.55)',
-                background: !modelFilter ? 'rgba(139,92,246,0.1)' : 'transparent',
+                color: !modelFilter.length ? '#a78bfa' : 'rgba(255,255,255,0.55)',
+                background: !modelFilter.length ? 'rgba(139,92,246,0.1)' : 'transparent',
                 borderBottom: '1px solid rgba(255,255,255,0.05)',
                 cursor: 'pointer',
                 display: 'flex', alignItems: 'center',
               }}
             >
               <span style={{ flex: 1 }}>All models</span>
-              {!modelFilter && (
+              {!modelFilter.length && (
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <polyline points="20 6 9 17 4 12"/>
                 </svg>
               )}
             </button>
 
-            {models.map((m, i) => (
+            {sortedModels.map((m, i) => (
               <button
                 key={m.name}
                 onClick={() => handleModelFilter(m.name)}
                 style={{
                   width: '100%', textAlign: 'left', padding: '8px 16px', fontSize: 13,
                   textTransform: 'capitalize',
-                  color: modelFilter === m.name ? '#a78bfa' : 'rgba(255,255,255,0.55)',
-                  background: modelFilter === m.name ? 'rgba(139,92,246,0.1)' : 'transparent',
+                  color: modelFilter.includes(m.name) ? '#a78bfa' : 'rgba(255,255,255,0.55)',
+                  background: modelFilter.includes(m.name) ? 'rgba(139,92,246,0.1)' : 'transparent',
                   borderBottom: i < models.length - 1 ? '1px solid rgba(255,255,255,0.05)' : 'none',
                   cursor: 'pointer',
                   display: 'flex', alignItems: 'center', gap: 10,
                 }}
               >
                 {m.image
-                  ? <img src={`https://ddejfvww7sqtk.cloudfront.net/images/attrs/${col.address}/${btoa(unescape(encodeURIComponent(m.name)))}.webp`} alt={m.name} style={{ width: 32, height: 32, objectFit: 'contain', flexShrink: 0 }} />
+                  ? <img
+                      src={modelImageUrl(m.name)}
+                      alt={m.name}
+                      loading="lazy"
+                      // нет иконки у GetGems — пробуем запасной источник, потом прячем
+                      onError={e => {
+                        const img = e.currentTarget, fb = modelImageFallback(m.name)
+                        if (fb && img.src !== fb) img.src = fb
+                        else img.style.visibility = 'hidden'
+                      }}
+                      style={{ width: 32, height: 32, objectFit: 'contain', flexShrink: 0 }}
+                    />
                   : <div style={{ width: 32, height: 32, flexShrink: 0 }} />
                 }
                 <span style={{ flex: 1 }}>{m.name}</span>
-                {modelFilter === m.name && (
+                {rarity[m.name] && (
+                  <span style={{ fontSize: 12, fontWeight: 700, color: rarityColor(rarity[m.name]), flexShrink: 0 }}>
+                    {rarity[m.name]}
+                  </span>
+                )}
+                {modelFilter.includes(m.name) && (
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                     <polyline points="20 6 9 17 4 12"/>
                   </svg>
@@ -380,7 +478,9 @@ export default function CollectionListings({ col, onBack }) {
               {[
                 { text: '> Connecting to Fragment...', suffix: '✓', suffixColor: '#4ade80', delay: '0s' },
                 { text: '> Connecting to GetGems...', suffix: '✓', suffixColor: '#4ade80', delay: '0.6s' },
-                { text: '> Fetching listings...', suffix: null, delay: '1.2s' },
+                { text: '> Connecting to MRKT...', suffix: '✓', suffixColor: '#4ade80', delay: '1.2s' },
+                { text: '> Connecting to Portals...', suffix: '✓', suffixColor: '#4ade80', delay: '1.8s' },
+                { text: '> Fetching listings...', suffix: null, delay: '2.4s' },
               ].map((line, i) => (
                 <div key={i} style={{
                   display: 'flex', justifyContent: 'space-between', alignItems: 'center',
@@ -425,7 +525,7 @@ export default function CollectionListings({ col, onBack }) {
               onClick={() => {
                 setError(null)
                 setLoading(true)
-                fetchListings({ collection: col.name, page, pageSize: PAGE_SIZE, model: modelFilter || undefined })
+                fetchListings({ collection: col.name, page, pageSize: PAGE_SIZE, model: modelFilter, backdrop: backdropFilter })
                   .then(data => { setItems(data.items); setTotal(data.total) })
                   .catch(e => setError(e.message))
                   .finally(() => setLoading(false))
@@ -446,7 +546,7 @@ export default function CollectionListings({ col, onBack }) {
                 <p style={{ color: 'rgba(255,255,255,0.2)', fontSize: 13 }}>No listings found</p>
               </div>
             ) : (
-              items.map((item, i) => <ListingCard key={i} item={item} isBest={i === 0 && page === 1} />)
+              items.map((item, i) => <ListingCard key={i} item={item} isBest={i === 0 && page === 1} rarity={item.model ? rarity[item.model] : undefined} modelImages={modelImageSources(item.model)} onRarityClick={setSheetModel} />)
             )}
 
             {totalPages > 1 && (

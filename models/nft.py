@@ -7,6 +7,8 @@ from typing import Optional
 class Marketplace(str, Enum):
     GETGEMS = "GetGems"
     FRAGMENT = "Fragment"
+    MRKT = "MRKT"           # приходят через GetGems как ExternalSale
+    PORTALS = "Portals"     # приходят через GetGems как ExternalSale
 
 
 @dataclass(frozen=True)
