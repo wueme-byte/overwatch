@@ -57,7 +57,8 @@ export default function Themes() {
         onClick={goBack}
         className="back-btn"
         style={{
-          position: 'absolute', top: 110, left: 16, zIndex: 20,
+          // как на остальных экранах: у верхнего края (110px был остатком старой компенсации под fullscreen)
+          position: 'absolute', top: 16, left: 16, zIndex: 20,
           width: 32, height: 32, borderRadius: '50%',
           background: 'rgba(139,92,246,0.12)',
           border: '1px solid rgba(139,92,246,0.25)',
@@ -75,7 +76,7 @@ export default function Themes() {
         position: 'relative', zIndex: 10,
         flex: 1, display: 'flex', flexDirection: 'column',
         alignItems: 'center', justifyContent: 'flex-start',
-        padding: '200px 24px 0',
+        padding: '110px 24px 0',
       }}>
 
         {/* Title */}

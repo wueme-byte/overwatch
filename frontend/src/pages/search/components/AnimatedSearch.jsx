@@ -1,7 +1,8 @@
 import { useState, useRef } from 'react'
 import './AnimatedSearch.css'
 
-export default function AnimatedSearch({ value, onChange }) {
+// onExpandedChange — сообщить странице, что поиск раскрыт (чтобы спрятать заголовок под ним)
+export default function AnimatedSearch({ value, onChange, onExpandedChange }) {
   const [expanded, setExpanded]   = useState(false)
   const [animating, setAnimating] = useState(false)
   const [closing, setClosing]     = useState(false)
@@ -11,6 +12,7 @@ export default function AnimatedSearch({ value, onChange }) {
   function start() {
     if (animating || expanded) return
     setAnimating(true)
+    onExpandedChange?.(true)
 
     setTimeout(() => {
       setExpanded(true)
@@ -24,6 +26,7 @@ export default function AnimatedSearch({ value, onChange }) {
     setAnimating(false)
     setClosing(false)
     onChange('')
+    onExpandedChange?.(false)
   }
 
   function handleClose(e) {
