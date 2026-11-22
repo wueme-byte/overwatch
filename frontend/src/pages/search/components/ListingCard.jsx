@@ -66,24 +66,23 @@ function button3d({ top, bottom, edge }) {
 function MarketPattern({ pattern }) {
   if (!pattern) return null
   const { src, size, opacity, brick } = pattern
+  // Один плоский слой размером с карточку. Раньше узор был отдельным повёрнутым
+  // слоем в 2–3 раза больше карточки — на iPhone (WebKit) 15 таких слоёв
+  // переполняли память отрисовки, и низ списка пропадал до прокрутки.
+  // Наклон фигурок теперь «впечён» в сами картинки (portals/mrkt-pattern.png).
   return (
     <div aria-hidden style={{
       position: 'absolute', inset: 0,
       pointerEvents: 'none',
+      opacity,
+      backgroundImage: brick ? `url(${src}), url(${src})` : `url(${src})`,
+      backgroundSize: `${size}px ${size}px`,
+      backgroundPosition: brick ? `0 0, ${size / 2}px ${size / 2}px` : '0 0',
+      backgroundRepeat: 'repeat',
       // узор виден в середине и растворяется к имени и к цене
       WebkitMaskImage: 'linear-gradient(90deg, transparent 18%, #000 42%, #000 58%, transparent 80%)',
       maskImage: 'linear-gradient(90deg, transparent 18%, #000 42%, #000 58%, transparent 80%)',
-    }}>
-      <div style={{
-        position: 'absolute', inset: '-60% -20%',
-        transform: 'rotate(-14deg)',
-        opacity,
-        backgroundImage: brick ? `url(${src}), url(${src})` : `url(${src})`,
-        backgroundSize: `${size}px ${size}px`,
-        backgroundPosition: brick ? `0 0, ${size / 2}px ${size / 2}px` : '0 0',
-        backgroundRepeat: 'repeat',
-      }} />
-    </div>
+    }} />
   )
 }
 
