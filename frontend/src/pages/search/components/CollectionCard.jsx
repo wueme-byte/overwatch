@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import gramLogo from '../../../assets/markets/gram.png'
 
 function CollectionAvatar({ col }) {
   const [imgOk, setImgOk] = useState(!!col.image)
@@ -16,6 +17,30 @@ function CollectionAvatar({ col }) {
       {initials}
     </div>
   )
+}
+
+// 188 → "188", 2861 → "2.9K", 181231 → "181K", 1250000 → "1.3M"
+function formatSupply(n) {
+  if (n < 1000) return String(n)
+  const short = (v, unit) => `${v.toFixed(v < 10 ? 1 : 0).replace(/\.0$/, '')}${unit}`
+  if (n < 999_500) return short(n / 1000, 'K')
+  return short(n / 1_000_000, 'M')
+}
+
+// флор: один знак после точки, обычное округление:
+// 9.69 → "9.7", 9.64 → "9.6", 312.9 → "313", 1572 → "1.6K"
+function formatFloor(p) {
+  if (p >= 1000) return `${(p / 1000).toFixed(p < 10_000 ? 1 : 0).replace(/\.0$/, '')}K`
+  if (p >= 100) return String(Math.round(p))
+  return String(Math.round(p * 10) / 10)
+}
+
+// цвет плашки supply по редкости: чем меньше выпущено, тем «дороже» цвет
+function supplyTier(n) {
+  if (n <= 5_000)   return { color: '#f5c451', border: 'rgba(245,196,81,0.55)' }    // золото
+  if (n <= 50_000)  return { color: '#b794ff', border: 'rgba(183,148,255,0.5)' }    // фиолетовый
+  if (n <= 200_000) return { color: '#6cc6ff', border: 'rgba(108,198,255,0.45)' }   // голубой
+  return { color: 'rgba(255,255,255,0.72)', border: 'rgba(255,255,255,0.22)' }     // серый
 }
 
 export default function CollectionCard({ col, isNew, onClick }) {
@@ -70,6 +95,21 @@ export default function CollectionCard({ col, isNew, onClick }) {
             </span>
           </div>
 
+          {/* supply (выпущено всего) — слева сверху; справа место под NEW */}
+          {col.supply > 0 && (
+            <div className="absolute pointer-events-none" style={{
+              top: 4, left: 4,
+              fontSize: 8,
+              fontWeight: 700,
+              letterSpacing: '0.2px',
+              padding: '2px 5px',
+              borderRadius: 999,
+              color: supplyTier(col.supply).color,
+              background: 'rgba(0,0,0,0.55)',
+              border: `1px solid ${supplyTier(col.supply).border}`,
+            }}>{formatSupply(col.supply)}</div>
+          )}
+
           {isNew && (
             <div className="absolute pointer-events-none" style={{
               top: 4, right: 4,
@@ -87,6 +127,20 @@ export default function CollectionCard({ col, isNew, onClick }) {
           )}
 
       </div>
+
+      {/* флор под карточкой: самая дешёвая цена «купить сразу» (GetGems + MRKT + Portals) */}
+      {col.floor > 0 && (
+        <div style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 3,
+          marginTop: 4,
+          fontSize: 10, fontWeight: 600,
+          color: 'rgba(255,255,255,0.85)',
+          fontVariantNumeric: 'tabular-nums',
+        }}>
+          <img src={gramLogo} alt="" style={{ width: 10, height: 10, display: 'block', flexShrink: 0 }} />
+          <span>{formatFloor(col.floor)}</span>
+        </div>
+      )}
     </button>
   )
 }

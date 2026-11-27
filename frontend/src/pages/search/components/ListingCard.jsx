@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import { FATE_ANIM, collapse, enter } from './fate'
 import { backdropCss } from '../../../lib/backdropColors'
 import getgemsLogo from '../../../assets/markets/getgems.png'
 import portalsLogo from '../../../assets/markets/portals.png'
@@ -191,7 +192,22 @@ export function rarityColor(pct) {
   return 'rgba(255,255,255,0.45)'
 }
 
-export default function ListingCard({ item, isBest, rarity, modelImages = [], onRarityClick }) {
+// fate: 'burned' | 'sold' | 'gone' — лот пропал, играем анимацию и схлопываем место,
+// потом onFateDone(). entering — карточка добралась снизу после пропажи другой.
+export default function ListingCard({ item, isBest, rarity, modelImages = [], onRarityClick, fate, entering, onFateDone }) {
+  const hostRef = useRef(null)
+  const fateRef = useRef(null)
+  useEffect(() => {
+    const host = hostRef.current
+    if (!fate || !host || fateRef.current) return
+    fateRef.current = fate
+    ;(FATE_ANIM[fate] || FATE_ANIM.gone)(host)
+      .catch(() => {})
+      .then(() => collapse(host))
+      .catch(() => {})
+      .then(() => onFateDone?.())
+  }, [fate])
+  useEffect(() => { if (entering && hostRef.current) enter(hostRef.current) }, [])
   // номер текущего источника картинки модели; при ошибке берём следующий
   const [imgIdx, setImgIdx] = useState(0)
   const modelImage = modelImages[imgIdx]
@@ -207,7 +223,7 @@ export default function ListingCard({ item, isBest, rarity, modelImages = [], on
   const bg = isBest ? BEST_BG : tintBg(market.rgb)
 
   return (
-    <div style={{ position: 'relative' }}>
+    <div ref={hostRef} style={{ position: 'relative', flexShrink: 0 }}>
       <a
         href={item.listing_url}
         target="_blank"
@@ -371,7 +387,7 @@ export default function ListingCard({ item, isBest, rarity, modelImages = [], on
             loading="lazy"
             onError={() => setImgIdx(i => i + 1)}
             style={{
-              width: 30, height: 30,
+              width: 38, height: 38,
               objectFit: 'contain',
               flexShrink: 0,
               marginLeft: 2,

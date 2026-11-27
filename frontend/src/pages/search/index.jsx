@@ -28,7 +28,7 @@ const BG = (
 // Новинки: поднимаются в начало списка и получают плашку NEW.
 // Порядок в массиве = порядок на экране. Сравнение по основе слова,
 // чтобы пережить переименование вида «Myth Mask» → «Myth Masks».
-const NEW_COLLECTIONS = ['resistance dog', 'myth mask']
+const NEW_COLLECTIONS = ['hoarse horse', 'resistance dog', 'myth mask']
 
 const isNewCollection = col =>
   NEW_COLLECTIONS.some(n => col.name.toLowerCase().includes(n))

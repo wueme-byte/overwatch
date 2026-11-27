@@ -22,3 +22,18 @@ export async function fetchRarity(collection) {
   if (!res.ok) return {}
   return res.json()
 }
+
+// Живые статусы карточек на экране: { адрес: "burned" | "sold" | "gone" } — только пропавшие
+export async function checkLive(collection, items) {
+  const res = await fetch(`${BASE}/listings/live`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      collection,
+      items: items.map(x => ({ address: x.nft_address, name: x.name, price_ton: x.price_ton })),
+    }),
+  })
+  if (!res.ok) return {}
+  const data = await res.json()
+  return data.status || {}
+}

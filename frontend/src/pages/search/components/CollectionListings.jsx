@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { fetchListings, fetchRarity } from '../../../api/listings'
+import { fetchListings, fetchRarity, checkLive } from '../../../api/listings'
 import ListingCard, { rarityColor, rarityRank } from './ListingCard'
 import ModelsSheet from './ModelsSheet'
 import { backdropCss } from '../../../lib/backdropColors'
@@ -35,6 +35,9 @@ function CollectionAvatar({ col }) {
 }
 
 const PAGE_SIZE = 15
+// как часто спрашиваем сервер, не сгорели/не продались ли карточки на экране
+const LIVE_POLL_MS = 12000
+const LIVE_FIRST_MS = 3000
 
 const BG = (
   <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', overflow: 'hidden', zIndex: 0 }}>
@@ -132,6 +135,17 @@ export default function CollectionListings({ col, onBack }) {
   const scrollRef                           = useRef(null)
   const [rarity, setRarity]                 = useState({})
   const [sheetModel, setSheetModel]         = useState(null)   // открыта шторка моделей (для этой модели)
+  // живой список: адрес → 'burned' | 'sold' | 'gone' (карточка играет анимацию и пропадает)
+  const [fates, setFates]                   = useState({})
+  const fatesRef                            = useRef({})
+  fatesRef.current = fates
+  const itemsRef                            = useRef(null)
+  itemsRef.current = items
+  const enteringRef                         = useRef(new Set())   // адреса, добравшиеся снизу
+  const refillTimer                         = useRef(null)
+  const paramsKey = JSON.stringify([col.name, page, modelFilter, backdropFilter])
+  const paramsRef                           = useRef(paramsKey)
+  paramsRef.current = paramsKey
 
   // редкость грузим отдельно, чтобы не задерживать список.
   // Сервер собирает её со страниц t.me и не всегда успевает за раз —
@@ -178,6 +192,8 @@ export default function CollectionListings({ col, onBack }) {
   useEffect(() => {
     setLoading(true)
     setError(null)
+    setFates({})
+    enteringRef.current = new Set()
     fetchListings({ collection: col.name, page, pageSize: PAGE_SIZE, model: modelFilter, backdrop: backdropFilter })
       .then(data => {
         setItems(data.items)
@@ -189,6 +205,62 @@ export default function CollectionListings({ col, onBack }) {
       .finally(() => setLoading(false))
     scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' })
   }, [col.name, page, modelFilter, backdropFilter])
+
+  // Живой список: раз в 12 с спрашиваем сервер про карточки на экране.
+  // Сгоревшие/проданные играют анимацию, место схлопывается, снизу добирается следующий лот.
+  useEffect(() => {
+    if (loading || error) return
+    let alive = true, timer
+    const poll = async () => {
+      if (!alive) return
+      const shown = (itemsRef.current || []).filter(x => x.nft_address && !fatesRef.current[x.nft_address])
+      if (!document.hidden && shown.length) {
+        try {
+          const st = await checkLive(col.name, shown)
+          if (alive && Object.keys(st).length) setFates(f => ({ ...f, ...st }))
+        } catch { /* сеть моргнула — спросим в следующий раз */ }
+      }
+      if (alive) timer = setTimeout(poll, LIVE_POLL_MS)
+    }
+    timer = setTimeout(poll, LIVE_FIRST_MS)
+    return () => { alive = false; clearTimeout(timer) }
+  }, [paramsKey, loading, error])
+
+  useEffect(() => () => clearTimeout(refillTimer.current), [])
+
+  // карточка доиграла анимацию и схлопнулась — убираем её и добираем список с сервера
+  const handleFateDone = addr => {
+    setItems(list => list ? list.filter(x => x.nft_address !== addr) : list)
+    clearTimeout(refillTimer.current)
+    refillTimer.current = setTimeout(() => {
+      const key = paramsRef.current
+      // Берём выдачу с начала и до конца текущей страницы (+ запас), чтобы найти,
+      // какой лот идёт следом за последней карточкой на экране.
+      const size = Math.min(500, page * PAGE_SIZE + 10)
+      fetchListings({ collection: col.name, page: 1, pageSize: size, model: modelFilter, backdrop: backdropFilter })
+        .then(data => {
+          if (key !== paramsRef.current) return   // пользователь уже ушёл на другую страницу/фильтр
+          setItems(cur => {
+            // карточки на экране остаются на своих местах (и те, что ещё доигрывают анимацию)
+            const kept = cur || []
+            const shown = new Set(kept.map(x => x.nft_address))
+            const living = kept.filter(x => !fatesRef.current[x.nft_address])
+            const room = PAGE_SIZE - living.length
+            if (room <= 0) return kept
+            // следующие — те, что в выдаче стоят после последней живой карточки.
+            // Новые дешёвые лоты наверх посреди просмотра не вставляем.
+            const lastAddr = living.length ? living[living.length - 1].nft_address : null
+            const from = lastAddr ? data.items.findIndex(x => x.nft_address === lastAddr) + 1 : 0
+            const pool = from > 0 ? data.items.slice(from) : data.items.slice(Math.max(0, (page - 1) * PAGE_SIZE))
+            const add = pool.filter(x => !shown.has(x.nft_address) && !fatesRef.current[x.nft_address]).slice(0, room)
+            add.forEach(x => enteringRef.current.add(x.nft_address))
+            return [...kept, ...add]
+          })
+          setTotal(data.total)
+        })
+        .catch(() => {})
+    }, 300)
+  }
 
   // список закрылся — стираем набранный в нём поиск
   useEffect(() => { if (!dropdownOpen) setModelQuery('') }, [dropdownOpen])
@@ -522,12 +594,14 @@ export default function CollectionListings({ col, onBack }) {
                   display: 'flex', alignItems: 'center', gap: 10,
                 }}
               >
-                {m.image
+                {/* Картинку пробуем всегда: у многих моделей GetGems не присылает m.image,
+                    хотя иконка есть (у Hoarse Horses — у 36 из 91). Нет у GetGems — запасной
+                    источник, нет и там — пустое место того же размера. */}
+                {(modelImageUrl(m.name) || modelImageFallback(m.name))
                   ? <img
-                      src={modelImageUrl(m.name)}
+                      src={modelImageUrl(m.name) || modelImageFallback(m.name)}
                       alt={m.name}
                       loading="lazy"
-                      // нет иконки у GetGems — пробуем запасной источник, потом прячем
                       onError={e => {
                         const img = e.currentTarget, fb = modelImageFallback(m.name)
                         if (fb && img.src !== fb) img.src = fb
@@ -648,7 +722,19 @@ export default function CollectionListings({ col, onBack }) {
                 <p style={{ color: 'rgba(255,255,255,0.2)', fontSize: 13 }}>No listings found</p>
               </div>
             ) : (
-              items.map((item, i) => <ListingCard key={i} item={item} isBest={i === 0 && page === 1} rarity={item.model ? rarity[item.model] : undefined} modelImages={modelImageSources(item.model)} onRarityClick={setSheetModel} />)
+              items.map((item, i) => (
+                <ListingCard
+                  key={item.nft_address || `${item.name}-${i}`}
+                  item={item}
+                  isBest={i === 0 && page === 1}
+                  rarity={item.model ? rarity[item.model] : undefined}
+                  modelImages={modelImageSources(item.model)}
+                  onRarityClick={setSheetModel}
+                  fate={item.nft_address ? fates[item.nft_address] : undefined}
+                  entering={enteringRef.current.has(item.nft_address)}
+                  onFateDone={() => handleFateDone(item.nft_address)}
+                />
+              ))
             )}
 
             {totalPages > 1 && (

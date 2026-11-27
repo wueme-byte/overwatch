@@ -4,12 +4,16 @@ import aiohttp
 from pathlib import Path
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException, Query
+from pydantic import BaseModel, Field
 from fastapi.middleware.cors import CORSMiddleware
 from redis.asyncio import from_url
 from orchestrator import NFTOrchestrator
 from filters import apply_filters
 from fetchers.getgems import split_twins
 from rarity import model_rarity, load_seed
+from supply import load_supply_seed, supply_loop, get_all as get_supply
+from floor import floor_loop, get_all as get_floor
+from live import live_status, hidden_set, is_hidden
 from config.settings import settings
 
 COLLECTIONS_CACHE_KEY = "nft:collections"
@@ -29,7 +33,17 @@ async def lifespan(app: FastAPI):
         await load_seed(redis)
     except Exception as e:
         print(f"[Rarity] seed not loaded: {e}", flush=True)
+    # supply подарков: файл supply_seed.json → Redis, дальше фон обновляет раз в сутки
+    try:
+        await load_supply_seed(redis)
+    except Exception as e:
+        print(f"[Supply] seed not loaded: {e}", flush=True)
+    supply_task = asyncio.create_task(supply_loop(redis, _collections_list))
+    # флор по коллекциям для карточек на Search — фон, раз в 15 минут
+    floor_task = asyncio.create_task(floor_loop(redis, _collections_list))
     yield
+    supply_task.cancel()
+    floor_task.cancel()
     await redis.aclose()
 
 
@@ -46,6 +60,7 @@ app.add_middleware(
 def _listing_dict(l) -> dict:
     return {
         "name": l.name,
+        "nft_address": l.nft_address,
         "model": l.model,
         "collection_name": l.collection_name,
         "price_ton": str(l.price_ton),
@@ -76,6 +91,11 @@ async def get_listings(
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+    # сгоревшие и только что проданные/снятые (см. live.py) не показываем
+    hidden = await hidden_set(redis)
+    if hidden:
+        listings = [l for l in listings if not is_hidden(l, hidden)]
+
     model_images: dict[str, str | None] = {}
     all_backdrops: list[str] = []
     seen_backdrops: set[str] = set()
@@ -105,6 +125,30 @@ async def get_listings(
     }
 
 
+class LiveItem(BaseModel):
+    address: str
+    name: str
+    price_ton: str
+
+
+class LiveCheck(BaseModel):
+    collection: str
+    items: list[LiveItem] = Field(default_factory=list, max_length=60)
+
+
+@app.post("/listings/live")
+async def listings_live(body: LiveCheck):
+    """Какие из карточек на экране сгорели / проданы / сняты: {"status": {адрес: "burned"|"sold"|"gone"}}."""
+    try:
+        listings = await orchestrator.fetch_listings(body.collection)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    status = await live_status(redis, listings, [i.model_dump() for i in body.items])
+    return {"status": status}
+
+
 @app.get("/rarity")
 async def get_rarity(collection: str = Query(...)):
     """Редкость моделей коллекции: {"Hue Jester": "3%", ...}.
@@ -122,6 +166,14 @@ async def get_rarity(collection: str = Query(...)):
 
 @app.get("/collections")
 async def get_collections():
+    collections = await _collections_list()
+    # supply и флор подмешиваем при каждом ответе (не в кэш) — свежие числа видны сразу
+    supply = await get_supply(redis)
+    floor = await get_floor(redis)
+    return [{**c, "supply": supply.get(c["name"]), "floor": floor.get(c["name"])} for c in collections]
+
+
+async def _collections_list():
     cached = await redis.get(COLLECTIONS_CACHE_KEY)
     if cached:
         return json.loads(cached)
