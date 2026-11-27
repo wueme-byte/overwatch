@@ -56,6 +56,63 @@ const BG = (
   </div>
 )
 
+// строка поиска вверху выпадающего списка (модели / цвета).
+// fontSize 16 — иначе iOS зумит страницу при тапе в поле
+const FilterSearch = ({ value, onChange, placeholder }) => (
+  <div style={{
+    position: 'sticky', top: 0, zIndex: 1,
+    padding: '8px 10px',
+    background: 'rgba(12,5,30,0.97)',
+    borderBottom: '1px solid rgba(255,255,255,0.05)',
+  }}>
+    <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(167,139,250,0.7)" strokeWidth="2.5" strokeLinecap="round"
+        style={{ position: 'absolute', left: 10, pointerEvents: 'none' }}>
+        <circle cx="11" cy="11" r="7"/>
+        <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <input
+        type="text"
+        value={value}
+        onChange={e => onChange(e.target.value)}
+        placeholder={placeholder}
+        autoComplete="off" autoCorrect="off" autoCapitalize="off" spellCheck={false}
+        style={{
+          width: '100%', boxSizing: 'border-box',
+          padding: '7px 30px 7px 30px', borderRadius: 10,
+          background: 'rgba(139,92,246,0.08)',
+          border: '1px solid rgba(139,92,246,0.25)',
+          color: '#fff', fontSize: 16, outline: 'none',
+        }}
+      />
+      {value && (
+        <button
+          onClick={() => onChange('')}
+          aria-label="Clear"
+          style={{
+            position: 'absolute', right: 6, width: 20, height: 20, padding: 0,
+            borderRadius: '50%', background: 'rgba(139,92,246,0.2)', border: 'none',
+            color: '#a78bfa', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
+          }}
+        >
+          <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round">
+            <line x1="6" y1="6" x2="18" y2="18"/>
+            <line x1="18" y1="6" x2="6" y2="18"/>
+          </svg>
+        </button>
+      )}
+    </div>
+  </div>
+)
+
+const NoMatches = () => (
+  <div style={{ padding: '14px 16px', fontSize: 13, color: 'rgba(255,255,255,0.35)', textAlign: 'center' }}>
+    Nothing found
+  </div>
+)
+
+const matches = (name, q) => name.toLowerCase().includes(q.trim().toLowerCase())
+
 export default function CollectionListings({ col, onBack }) {
   const [items, setItems]                   = useState(null)
   const [total, setTotal]                   = useState(0)
@@ -67,6 +124,9 @@ export default function CollectionListings({ col, onBack }) {
   const [backdropFilter, setBackdropFilter] = useState([])
   const [dropdownOpen, setDropdownOpen]     = useState(false)
   const [backdropOpen, setBackdropOpen]     = useState(false)
+  // текст в строке поиска внутри списков; стирается при закрытии списка
+  const [modelQuery, setModelQuery]         = useState('')
+  const [backdropQuery, setBackdropQuery]   = useState('')
   const [loading, setLoading]               = useState(true)
   const [error, setError]                   = useState(null)
   const scrollRef                           = useRef(null)
@@ -130,20 +190,37 @@ export default function CollectionListings({ col, onBack }) {
     scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' })
   }, [col.name, page, modelFilter, backdropFilter])
 
-  // null — сбросить («All …») и закрыть список; значение — добавить/убрать,
-  // список остаётся открытым, чтобы можно было выбрать ещё
+  // список закрылся — стираем набранный в нём поиск
+  useEffect(() => { if (!dropdownOpen) setModelQuery('') }, [dropdownOpen])
+  useEffect(() => { if (!backdropOpen) setBackdropQuery('') }, [backdropOpen])
+
+  // null — сбросить («All …») и закрыть список; значение — добавить/убрать.
+  // Первый выбор (когда ещё ничего не выбрано) закрывает список — обычно ищут
+  // одну модель/цвет. Если уже что-то выбрано — список остаётся открытым,
+  // чтобы можно было набрать несколько
   const toggle = (arr, v) => arr.includes(v) ? arr.filter(x => x !== v) : [...arr, v]
 
   function handleModelFilter(m) {
+    const first = modelFilter.length === 0
     setModelFilter(prev => m === null ? [] : toggle(prev, m))
     setPage(1)
-    if (m === null) setDropdownOpen(false)
+    if (m === null || first) setDropdownOpen(false)
   }
 
   function handleBackdropFilter(b) {
+    const first = backdropFilter.length === 0
     setBackdropFilter(prev => b === null ? [] : toggle(prev, b))
     setPage(1)
-    if (b === null) setBackdropOpen(false)
+    if (b === null || first) setBackdropOpen(false)
+  }
+
+  // кнопка ✕ в шапке: сбросить и модели, и цвета разом
+  function resetFilters() {
+    setModelFilter([])
+    setBackdropFilter([])
+    setPage(1)
+    setDropdownOpen(false)
+    setBackdropOpen(false)
   }
 
   return (
@@ -224,6 +301,27 @@ export default function CollectionListings({ col, onBack }) {
               </span>
             )}
           </div>
+
+          {/* сброс всех фильтров — виден, только когда что-то выбрано */}
+          {(modelFilter.length > 0 || backdropFilter.length > 0) && (
+            <button
+              onClick={resetFilters}
+              aria-label="Reset filters"
+              style={{
+                width: 28, height: 28, borderRadius: '50%', flexShrink: 0,
+                alignSelf: 'flex-end',
+                background: 'rgba(139,92,246,0.12)',
+                border: '1px solid rgba(139,92,246,0.25)',
+                color: '#a78bfa', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                cursor: 'pointer', padding: 0,
+              }}
+            >
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round">
+                <line x1="6" y1="6" x2="18" y2="18"/>
+                <line x1="18" y1="6" x2="6" y2="18"/>
+              </svg>
+            </button>
+          )}
 
           {/* фильтры: Colors сверху, Model снизу */}
           {(models.length > 0 || backdrops.length > 0) && (
@@ -324,6 +422,7 @@ export default function CollectionListings({ col, onBack }) {
             maxHeight: 260,
             overflowY: 'auto',
           }}>
+            <FilterSearch value={backdropQuery} onChange={setBackdropQuery} placeholder="Search color" />
             <button
               onClick={() => handleBackdropFilter(null)}
               style={{
@@ -346,7 +445,8 @@ export default function CollectionListings({ col, onBack }) {
                 </svg>
               )}
             </button>
-            {backdrops.map((b, i) => (
+            {backdropQuery.trim() && !backdrops.some(b => matches(b, backdropQuery)) && <NoMatches />}
+            {backdrops.map((b, i) => !matches(b, backdropQuery) ? null : (
               <button
                 key={b}
                 onClick={() => handleBackdropFilter(b)}
@@ -387,6 +487,7 @@ export default function CollectionListings({ col, onBack }) {
             maxHeight: 260,
             overflowY: 'auto',
           }}>
+            <FilterSearch value={modelQuery} onChange={setModelQuery} placeholder="Search model" />
             <button
               onClick={() => handleModelFilter(null)}
               style={{
@@ -406,7 +507,8 @@ export default function CollectionListings({ col, onBack }) {
               )}
             </button>
 
-            {sortedModels.map((m, i) => (
+            {modelQuery.trim() && !sortedModels.some(m => matches(m.name, modelQuery)) && <NoMatches />}
+            {sortedModels.map((m, i) => !matches(m.name, modelQuery) ? null : (
               <button
                 key={m.name}
                 onClick={() => handleModelFilter(m.name)}

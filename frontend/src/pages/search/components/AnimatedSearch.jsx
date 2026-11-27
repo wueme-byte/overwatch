@@ -14,10 +14,15 @@ export default function AnimatedSearch({ value, onChange, onExpandedChange }) {
     setAnimating(true)
     onExpandedChange?.(true)
 
+    // фокус — сразу, прямо в обработчике нажатия: телефоны (особенно iOS)
+    // открывают клавиатуру только так, отложенный focus() они игнорируют.
+    // Поле во время анимации прозрачное, но уже существует — фокус встаёт.
+    inputRef.current?.focus({ preventScroll: true })
+
     setTimeout(() => {
       setExpanded(true)
       setAnimating(false)
-      inputRef.current?.focus()
+      inputRef.current?.focus({ preventScroll: true })   // на случай, если фокус слетел
     }, 360)
   }
 
