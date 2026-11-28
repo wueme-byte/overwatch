@@ -21,6 +21,8 @@ import aiohttp
 from redis.asyncio import Redis
 
 from config.settings import settings
+import logging
+log = logging.getLogger("Supply")
 
 KEY = "nft:supply"
 SEED_FILE = "supply_seed.json"
@@ -94,7 +96,7 @@ async def collect(redis: Redis, collections: list[dict], only_missing: bool = Fa
         try:
             by_norm = await _gift_names(session)
         except Exception as e:
-            print(f"[Supply] changes.tg gifts: {e}", flush=True)
+            log.warning(f"changes.tg gifts: {e}")
             by_norm = {}
 
         for col in collections:
@@ -106,21 +108,21 @@ async def collect(redis: Redis, collections: list[dict], only_missing: bool = Fa
             gift = by_norm.get(n) or by_norm.get(n[:-1]) or by_norm.get(n[:-2]) \
                 or await _gift_from_getgems(session, address)
             if not gift:
-                print(f"[Supply] {name}: gift name not resolved", flush=True)
+                log.warning(f"{name}: gift name not resolved")
                 continue
 
             for _ in range(5):
                 status, value = await _fetch_supply(session, gift)
                 if status != "throttled":
                     break
-                print(f"[Supply] t.me throttles — pause {COOLDOWN}s", flush=True)
+                log.warning(f"t.me throttles — pause {COOLDOWN}s")
                 await asyncio.sleep(COOLDOWN)
 
             if status == "ok":
                 found[name] = value
                 await redis.hset(KEY, name, value)
             else:
-                print(f"[Supply] {name} ({gift}): {status}", flush=True)
+                log.info(f"{name} ({gift}): {status}")
             await asyncio.sleep(PAUSE)
     return found
 
@@ -139,7 +141,7 @@ async def load_supply_seed(redis: Redis, path: str = SEED_FILE) -> None:
     missing = {k: v for k, v in seed.items() if k not in known}
     if missing:
         await redis.hset(KEY, mapping=missing)
-    print(f"[Supply] seed: {len(seed)} in file, {len(missing)} added", flush=True)
+    log.info(f"seed: {len(seed)} in file, {len(missing)} added")
 
 
 async def supply_loop(redis: Redis, get_collections) -> None:
@@ -149,10 +151,10 @@ async def supply_loop(redis: Redis, get_collections) -> None:
         try:
             cols = await get_collections()
             got = await collect(redis, cols, only_missing=first)
-            print(f"[Supply] updated {len(got)} collections", flush=True)
+            log.info(f"updated {len(got)} collections")
         except asyncio.CancelledError:
             raise
         except Exception as e:
-            print(f"[Supply] loop error: {e}", flush=True)
+            log.warning(f"loop error: {e}")
         first = False
         await asyncio.sleep(REFRESH_EVERY)

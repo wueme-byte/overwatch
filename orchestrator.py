@@ -9,6 +9,8 @@ from redis.asyncio import Redis
 from fetchers import GetGemsClient, FragmentClient
 from models import NFTListing, Marketplace
 from config.settings import settings, get_fragment_cookies
+import logging
+log = logging.getLogger("Orchestrator")
 
 if settings.FRAGMENT_PROXY:
     os.environ.setdefault("HTTPS_PROXY", settings.FRAGMENT_PROXY)
@@ -37,7 +39,7 @@ async def _fetch_ton_price(session: aiohttp.ClientSession) -> Decimal:
             data = await resp.json()
             return Decimal(str(data["the-open-network"]["usd"]))
     except Exception as e:
-        print(f"[Orchestrator] Не удалось получить курс TON: {e}, используем {TON_PRICE_FALLBACK}$")
+        log.warning(f"Не удалось получить курс TON: {e}, используем {TON_PRICE_FALLBACK}$")
         return TON_PRICE_FALLBACK
 
 
@@ -95,7 +97,7 @@ class NFTOrchestrator:
             def _done(t: asyncio.Task, slug=collection_slug):
                 self._inflight.pop(slug, None)
                 if not t.cancelled() and t.exception():
-                    print(f"[Orchestrator] Загрузка {slug} упала: {t.exception()}")
+                    log.warning(f"Загрузка {slug} упала: {t.exception()}")
             task.add_done_callback(_done)
         return task
 
@@ -112,12 +114,12 @@ class NFTOrchestrator:
                     if col.get("address") == address:
                         return col.get("name") or ""
         except Exception as e:
-            print(f"[Orchestrator] Кэш коллекций недоступен: {e}")
+            log.warning(f"Кэш коллекций недоступен: {e}")
 
         try:
             return await gg.name_by_address(address)
         except Exception as e:
-            print(f"[Orchestrator] Не удалось определить имя коллекции: {e}")
+            log.warning(f"Не удалось определить имя коллекции: {e}")
             return ""
 
     async def _getgems_with_twins(self, gg: GetGemsClient, col_addr: str, display_name: str) -> list[NFTListing]:
@@ -128,7 +130,7 @@ class NFTOrchestrator:
         try:
             twins = await gg.twin_addresses(col_addr)
         except Exception as e:
-            print(f"[Orchestrator] Не удалось получить двойников {col_addr[:10]}...: {e}")
+            log.warning(f"Не удалось получить двойников {col_addr[:10]}...: {e}")
             twins = []
 
         results = await asyncio.gather(
@@ -142,9 +144,9 @@ class NFTOrchestrator:
         listings = list(results[0])
         for twin, res in zip(twins, results[1:]):
             if isinstance(res, Exception):
-                print(f"[Orchestrator] Двойник {twin[:10]}... не загрузился: {res}")
+                log.warning(f"Двойник {twin[:10]}... не загрузился: {res}")
             else:
-                print(f"[Orchestrator] Двойник {twin[:10]}...: +{len(res)} лотов")
+                log.debug(f"Двойник {twin[:10]}...: +{len(res)} лотов")
                 listings.extend(res)
         return listings
 
@@ -185,7 +187,7 @@ class NFTOrchestrator:
         # данных нет совсем (или force_refresh) — ждём загрузку;
         # если она уже идёт для этой коллекции, ждём её же
         if collection_slug in self._inflight:
-            print(f"[Orchestrator] Waiting for inflight request: {collection_slug}")
+            log.debug(f"Waiting for inflight request: {collection_slug}")
         return await asyncio.shield(self._start_fetch(collection_slug))
 
     async def _do_fetch(self, collection_slug: str) -> list[NFTListing]:
@@ -212,10 +214,10 @@ class NFTOrchestrator:
 
             frag_cookies = get_fragment_cookies()
             if not frag_cookies:
-                print("[Orchestrator] Fragment cookies not configured — skipping Fragment")
+                log.info("Fragment cookies not configured — skipping Fragment")
             elif not col_name:
                 # без имени Fragment вернёт чужие подарки — лучше пропустить источник
-                print(f"[Orchestrator] Имя коллекции {col_addr[:10]}... не определено — Fragment пропущен")
+                log.warning(f"Имя коллекции {col_addr[:10]}... не определено — Fragment пропущен")
             else:
                 frag = FragmentClient(frag_cookies)
                 tasks.append(asyncio.wait_for(frag.get_listings(col_addr, col_name), timeout=FRAGMENT_TIMEOUT))
@@ -233,13 +235,13 @@ class NFTOrchestrator:
         if isinstance(frag_results, Exception):
             saved = await self.redis.get(frag_key)
             if saved:
-                print(f"[Orchestrator] Fragment не ответил ({type(frag_results).__name__}) — "
+                log.warning(f"Fragment не ответил ({type(frag_results).__name__}) — "
                       f"беру прошлый ответ для {display_name}")
                 frag_results = [_deserialize_listing(i) for i in json.loads(saved)]
         elif len(results) > 2:
             await self.redis.setex(frag_key, STALE_TTL, json.dumps([vars(l) for l in frag_results], default=str))
 
-        print(f"[Orchestrator] Курс TON: ${ton_price}")
+        log.debug(f"Курс TON: ${ton_price}")
 
         # Обогащаем Fragment листинги атрибутами из GetGems по совпадению имени
         if not isinstance(gg_results, Exception) and not isinstance(frag_results, Exception):
@@ -259,7 +261,7 @@ class NFTOrchestrator:
         all_listings: list[NFTListing] = []
         for source, result in (("GetGems", gg_results), ("Fragment", frag_results)):
             if isinstance(result, Exception):
-                print(f"[Orchestrator] Fetcher error [{source}] ({display_name}): "
+                log.warning(f"Fetcher error [{source}] ({display_name}): "
                       f"{type(result).__name__}: {result!r}")
             else:
                 all_listings.extend(result)

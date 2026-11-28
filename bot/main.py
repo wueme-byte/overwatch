@@ -1,15 +1,20 @@
 import asyncio
+import logging
 import signal
 from telegram.ext import Application, CommandHandler
 from bot.handlers import cmd_start
 from config.settings import settings
+from logsetup import setup_logging
+
+log = logging.getLogger("bot")
 
 
 async def run():
+    setup_logging()
     app = Application.builder().token(settings.BOT_TOKEN).build()
     app.add_handler(CommandHandler("start", cmd_start))
 
-    print("Bot started.")
+    log.info("Bot started.")
     await app.initialize()
     await app.updater.start_polling()
     await app.start()
@@ -21,7 +26,7 @@ async def run():
 
     await stop_event.wait()
 
-    print("Stopping...")
+    log.info("Stopping...")
     await app.updater.stop()
     await app.stop()
     await app.shutdown()

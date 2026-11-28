@@ -28,6 +28,8 @@ import time
 import aiohttp
 
 from config.settings import settings
+import logging
+log = logging.getLogger("Live")
 
 GETGEMS_API = "https://api.getgems.io/public-api/v1"
 
@@ -70,7 +72,7 @@ async def hidden_set(redis) -> set[str]:
     try:
         return set(await redis.zrangebyscore(HIDDEN_KEY, time.time(), "+inf"))
     except Exception as e:
-        print(f"[Live] hidden set недоступен: {e}", flush=True)
+        log.warning(f"hidden set недоступен: {e}")
         return set()
 
 
@@ -93,7 +95,7 @@ async def _fetch_history(col_addr: str) -> dict[str, str]:
             timeout=aiohttp.ClientTimeout(total=10),
         ) as resp:
             if not resp.ok:
-                print(f"[Live] история {col_addr[:10]}...: HTTP {resp.status}", flush=True)
+                log.warning(f"история {col_addr[:10]}...: HTTP {resp.status}")
                 return {}
             data = await resp.json()
     latest: dict[str, str] = {}
@@ -121,7 +123,7 @@ async def _history(redis, col_addr: str) -> dict[str, str]:
     try:
         latest = await asyncio.shield(task)
     except Exception as e:
-        print(f"[Live] история {col_addr[:10]}... не загрузилась: {e}", flush=True)
+        log.warning(f"история {col_addr[:10]}... не загрузилась: {e}")
         return {}
     try:
         await redis.setex(key, HIST_TTL, json.dumps(latest))
@@ -236,5 +238,5 @@ async def live_status(redis, listings, items: list[dict]) -> dict[str, str]:
             await redis.zadd(HIDDEN_KEY, mapping)
             await redis.zremrangebyscore(HIDDEN_KEY, 0, time.time())
         except Exception as e:
-            print(f"[Live] не удалось запомнить пропавшие: {e}", flush=True)
+            log.warning(f"не удалось запомнить пропавшие: {e}")
     return result

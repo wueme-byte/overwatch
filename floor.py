@@ -18,6 +18,8 @@ import aiohttp
 from redis.asyncio import Redis
 
 from config.settings import settings
+import logging
+log = logging.getLogger("Floor")
 
 KEY = "nft:floor"
 GETGEMS_API = "https://api.getgems.io/public-api/v1"
@@ -35,7 +37,7 @@ async def _floor_of(session: aiohttp.ClientSession, address: str) -> Decimal | N
                 await asyncio.sleep(5 * (attempt + 1))
                 continue
             if resp.status != 200:
-                print(f"[Floor] {address[:8]}…: HTTP {resp.status}", flush=True)
+                log.warning(f"{address[:8]}…: HTTP {resp.status}")
                 return None
             items = ((await resp.json()).get("response") or {}).get("items") or []
         prices = [
@@ -59,7 +61,7 @@ async def collect(redis: Redis, collections: list[dict]) -> int:
             try:
                 floor = await _floor_of(session, address)
             except Exception as e:
-                print(f"[Floor] {name}: {e!r}", flush=True)
+                log.warning(f"{name}: {e!r}")
                 floor = None
             if floor is not None:
                 await redis.hset(KEY, name, f"{floor.normalize():f}")
@@ -83,9 +85,9 @@ async def floor_loop(redis: Redis, get_collections) -> None:
         try:
             cols = await get_collections()
             n = await collect(redis, cols)
-            print(f"[Floor] updated {n}/{len(cols)} collections", flush=True)
+            log.info(f"updated {n}/{len(cols)} collections")
         except asyncio.CancelledError:
             raise
         except Exception as e:
-            print(f"[Floor] loop error: {e!r}", flush=True)
+            log.warning(f"loop error: {e!r}")
         await asyncio.sleep(REFRESH)

@@ -6,6 +6,8 @@ from types import SimpleNamespace
 from pyfragment.methods.search_gifts import search_gifts as _search_gifts
 from pyfragment.types.constants import DEFAULT_TIMEOUT
 from models import NFTListing, Marketplace
+import logging
+log = logging.getLogger("Fragment")
 
 
 def _collection_slug(name: str) -> str:
@@ -42,7 +44,7 @@ class FragmentClient:
         col_slug = _collection_slug(collection_name) if collection_name else None
         # Fragment slugs не имеют trailing 's': "Durov's Caps" → "durovscaps" → "durovscap"
         frag_collection = col_slug.rstrip("s") if col_slug else None
-        print(f"[Fragment] starting search: collection={frag_collection!r}")
+        log.debug(f"starting search: collection={frag_collection!r}")
 
         while True:
             result = await _search_gifts(
@@ -53,7 +55,7 @@ class FragmentClient:
                 sort="price_asc",
                 offset=offset,
             )
-            print(f"[Fragment] got {len(result.items)} items, next_offset={result.next_offset}")
+            log.debug(f"got {len(result.items)} items, next_offset={result.next_offset}")
 
             for item in result.items:
                 price_str = item.get("price")
@@ -95,5 +97,5 @@ class FragmentClient:
                 break
             offset = result.next_offset
 
-        print(f"[Fragment] total listings: {len(listings)}")
+        log.info(f"total listings: {len(listings)}")
         return listings

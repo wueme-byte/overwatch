@@ -4,6 +4,8 @@ import asyncio
 import aiohttp
 from decimal import Decimal
 from models import NFTListing, Marketplace
+import logging
+log = logging.getLogger("GetGems")
 
 GETGEMS_API = "https://api.getgems.io/public-api/v1"
 
@@ -31,6 +33,40 @@ def _normalize(s: str) -> str:
 # GetGems \u043e\u0442\u0434\u0430\u0451\u0442 \u0432 /nfts/on-sale \u0438 \u0447\u0443\u0436\u0438\u0435 \u043b\u043e\u0442\u044b: sale.type == "ExternalSale",
 # sale.link \u2014 \u043f\u0440\u044f\u043c\u0430\u044f \u0441\u0441\u044b\u043b\u043a\u0430 \u043d\u0430 \u043b\u043e\u0442 \u0432 \u043c\u0430\u0440\u043a\u0435\u0442\u0435. fullPrice \u2014 \u0441\u0443\u043c\u043c\u0430 \u0434\u043b\u044f \u043f\u043e\u043a\u0443\u043f\u0430\u0442\u0435\u043b\u044f
 # (\u0443 MRKT GetGems \u0443\u0436\u0435 \u043f\u0440\u0438\u0431\u0430\u0432\u0438\u043b \u0435\u0433\u043e 2%, \u0443 Portals \u0446\u0435\u043d\u0430 \u043a\u0430\u043a \u043d\u0430 \u0441\u0430\u043c\u043e\u043c \u043c\u0430\u0440\u043a\u0435\u0442\u0435).
+async def fetch_gift_collections(api_key: str = "") -> list[dict]:
+    """Все gift-коллекции GetGems (сырые записи, вместе с двойниками).
+    Бросает исключение, если GetGems ответил ошибкой или не вернул ничего —
+    чтобы вызывающий НЕ закэшировал пустой список."""
+    headers = {"Accept": "application/json"}
+    if api_key:
+        headers["Authorization"] = f"Bearer {api_key}"
+    raw: list[dict] = []
+    cursor = None
+    async with aiohttp.ClientSession() as session:
+        while True:
+            params = {"limit": 100}
+            if cursor:
+                params["after"] = cursor
+            async with session.get(
+                "https://api.getgems.io/public-api/v1/gifts/collections",
+                params=params, headers=headers,
+                timeout=aiohttp.ClientTimeout(total=15),
+            ) as resp:
+                if not resp.ok:
+                    body = (await resp.text())[:200]
+                    raise RuntimeError(f"GetGems collections HTTP {resp.status}: {body}")
+                data = await resp.json()
+            response = data.get("response", {})
+            items = response.get("items") or []
+            cursor = response.get("cursor")
+            raw.extend(items)
+            if not cursor or len(items) < 100:
+                break
+    if not raw:
+        raise RuntimeError("GetGems вернул пустой список коллекций")
+    return raw
+
+
 # В4: бот маркетплейса на t.me → маркетплейс. Раньше ссылку проверяли «содержит ли
 # она кусок t.me/mrkt» — проходила любая строка с этим куском где угодно, в том числе
 # javascript:-ссылка. Теперь разбираем ссылку: только https, только t.me, бот — первым в пути.
@@ -195,7 +231,7 @@ class GetGemsClient:
                 ) as resp:
                     if resp.status == 429:
                         wait = 5 * (2 ** retry_count)
-                        print(f"[GetGems] 429 rate limit, waiting {wait}s (attempt {retry_count + 1})")
+                        log.warning(f"429 rate limit, waiting {wait}s (attempt {retry_count + 1})")
                         retry_count += 1
                         resp_429 = True
                     else:
@@ -208,7 +244,7 @@ class GetGemsClient:
             response = data.get("response", {})
             items = response.get("items") or []
             next_cursor = response.get("cursor")
-            print(f"[GetGems] fetched batch: {len(items)} items, cursor={bool(next_cursor)}")
+            log.debug(f"fetched batch: {len(items)} items, cursor={bool(next_cursor)}")
             await asyncio.sleep(0.2)
             return items, next_cursor
 
@@ -311,14 +347,14 @@ class GetGemsClient:
             items, cursor = await self._on_sale_page(collection_address, cursor)
             self._parse_items(items, collection_name, report_address, listings, seen)
             if not cursor or len(items) < 100:
-                print(f"[GetGems] total listings: {len(listings)}")
+                log.info(f"total listings: {len(listings)}")
                 return listings
 
         parts = cursor.split(",")
         base = _cursor_price(cursor)
         if len(parts) != 3 or base is None or base <= 0:
             # незнакомый формат курсора — по-старому, страница за страницей
-            print(f"[GetGems] unknown cursor format {cursor!r}, sequential fetch")
+            log.warning(f"unknown cursor format {cursor!r}, sequential fetch")
             lanes = [(cursor, None)]
         else:
             prefix = parts[0]
@@ -339,5 +375,5 @@ class GetGemsClient:
         for items in results:
             self._parse_items(items, collection_name, report_address, listings, seen)
 
-        print(f"[GetGems] total listings: {len(listings)} ({len(lanes)} lanes, {time.time() - t0:.1f}s)")
+        log.info(f"total listings: {len(listings)} ({len(lanes)} lanes, {time.time() - t0:.1f}s)")
         return listings

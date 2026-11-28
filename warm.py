@@ -9,6 +9,8 @@
 Порядок в списке = порядок на экране.
 """
 import asyncio
+import logging
+log = logging.getLogger("Warm")
 
 NEW_COLLECTIONS = ["Hoarse Horses", "Resistance Dogs", "Myth Masks"]
 WARM_COLLECTIONS = NEW_COLLECTIONS
@@ -21,7 +23,7 @@ async def warm_loop(orchestrator):
         for name in WARM_COLLECTIONS:
             try:
                 listings = await orchestrator.fetch_listings(name, force_refresh=True)
-                print(f"[Warm] {name}: {len(listings)} лотов", flush=True)
+                log.info(f"{name}: {len(listings)} лотов")
             except Exception as e:
-                print(f"[Warm] {name}: {type(e).__name__}: {e!r}", flush=True)
+                log.warning(f"{name}: {type(e).__name__}: {e!r}")
         await asyncio.sleep(WARM_EVERY)

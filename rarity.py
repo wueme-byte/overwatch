@@ -14,6 +14,8 @@ import aiohttp
 from redis.asyncio import Redis
 
 from models.nft import NFTListing
+import logging
+log = logging.getLogger("Rarity")
 
 KEY = "nft:rarity:{}"          # hash: model -> "3%" или "Rare" (крафтовые)
 # t.me ограничивает частые запросы с одного IP: вместо подарка отдаёт заглушку
@@ -99,9 +101,9 @@ async def _fill_round(redis: Redis, collection: str, samples: dict[str, list[str
 
     if stop.is_set():
         _cooldown_until = time.time() + COOLDOWN
-        print(f"[Rarity] {collection}: +{found}, t.me throttles — pause {COOLDOWN}s", flush=True)
+        log.warning(f"{collection}: +{found}, t.me throttles — pause {COOLDOWN}s")
     elif found < len(samples):
-        print(f"[Rarity] {collection}: +{found}, no rarity for {len(samples) - found} model(s)", flush=True)
+        log.info(f"{collection}: +{found}, no rarity for {len(samples) - found} model(s)")
 
 
 # ── Основной источник: api.changes.tg ──────────────────────────────────────
@@ -129,7 +131,7 @@ async def _from_changes(gift_name: str) -> tuple[dict[str, str], set[str]] | Non
                     return None
                 data = await resp.json(content_type=None)
     except Exception as e:
-        print(f"[Rarity] changes.tg {gift_name}: {e}", flush=True)
+        log.warning(f"changes.tg {gift_name}: {e}")
         return None
     if not isinstance(data, list):
         return None
@@ -191,7 +193,7 @@ async def model_rarity(redis: Redis, collection: str, listings: list[NFTListing]
     if samples and (running is None or running.done()):
         task = asyncio.ensure_future(_fill(redis, collection, samples))
         _filling[collection] = task
-        task.add_done_callback(lambda t: t.cancelled() or t.exception() and print(f"[Rarity] {collection}: fill failed: {t.exception()}", flush=True))
+        task.add_done_callback(lambda t: t.cancelled() or t.exception() and log.warning(f"{collection}: fill failed: {t.exception()}"))
     return {m: v for m, v in known.items() if not m.startswith("__")}
 
 
@@ -210,4 +212,4 @@ async def load_seed(redis: Redis, path: str = "rarity_seed.json") -> None:
             continue
         await redis.hset(key, mapping={**models, DONE_MARK: "1"})
         loaded += 1
-    print(f"[Rarity] seed: {len(seed)} collections in file, loaded {loaded}", flush=True)
+    log.info(f"seed: {len(seed)} collections in file, loaded {loaded}")

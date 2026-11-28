@@ -1,6 +1,5 @@
 import json
 import asyncio
-import aiohttp
 from pathlib import Path
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException, Query, Request
@@ -9,7 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from redis.asyncio import from_url
 from orchestrator import NFTOrchestrator
 from filters import apply_filters
-from fetchers.getgems import split_twins
+from fetchers.getgems import split_twins, fetch_gift_collections
 from rarity import model_rarity, load_seed
 from supply import load_supply_seed, supply_loop, get_all as get_supply
 from floor import floor_loop, get_all as get_floor
@@ -17,6 +16,10 @@ from live import live_status, hidden_set, is_hidden
 from stats import record as record_visit, verify_init_data
 from warm import warm_loop, NEW_COLLECTIONS
 from config.settings import settings
+import logging
+from logsetup import setup_logging
+setup_logging()
+log = logging.getLogger("api")
 
 COLLECTIONS_CACHE_KEY = "nft:collections"
 COLLECTIONS_CACHE_TTL = 86400  # 24 часа
@@ -34,12 +37,12 @@ async def lifespan(app: FastAPI):
     try:
         await load_seed(redis)
     except Exception as e:
-        print(f"[Rarity] seed not loaded: {e}", flush=True)
+        log.warning(f"seed not loaded: {e}")
     # supply подарков: файл supply_seed.json → Redis, дальше фон обновляет раз в сутки
     try:
         await load_supply_seed(redis)
     except Exception as e:
-        print(f"[Supply] seed not loaded: {e}", flush=True)
+        log.warning(f"seed not loaded: {e}")
     supply_task = asyncio.create_task(supply_loop(redis, _collections_list))
     # флор по коллекциям для карточек на Search — фон, раз в 15 минут
     floor_task = asyncio.create_task(floor_loop(redis, _collections_list))
@@ -81,7 +84,7 @@ def _listing_dict(l) -> dict:
 def _internal_error(e: Exception) -> HTTPException:
     """В5: подробности сбоя — только в лог сервера; клиенту общая фраза.
     Текст исключения может содержать адреса, ключи запросов и устройство сервера."""
-    print(f"[API] internal error: {type(e).__name__}: {e!r}", flush=True)
+    log.error(f"internal error: {type(e).__name__}: {e!r}")
     return HTTPException(status_code=500, detail="Internal error")
 
 
@@ -207,7 +210,7 @@ async def visit(body: Visit, request: Request):
     try:
         await record_visit(redis, body.event, collection, user, ip, request.headers.get("user-agent"))
     except Exception as e:
-        print(f"[Stats] {type(e).__name__}: {e!r}", flush=True)
+        log.warning(f"visit: {type(e).__name__}: {e!r}")
     return {"ok": True}
 
 
@@ -245,41 +248,17 @@ async def _collections_list():
     if cached:
         return json.loads(cached)
 
-    collections = []
-    raw_cols: list[dict] = []
-    cursor = None
-    headers = {"Accept": "application/json"}
-    if settings.GETGEMS_API_KEY:
-        headers["Authorization"] = f"Bearer {settings.GETGEMS_API_KEY}"
-
-    async with aiohttp.ClientSession() as session:
-        while True:
-            params = {"limit": 100}
-            if cursor:
-                params["after"] = cursor
-            async with session.get(
-                "https://api.getgems.io/public-api/v1/gifts/collections",
-                params=params, headers=headers,
-                timeout=aiohttp.ClientTimeout(total=15),
-            ) as resp:
-                if not resp.ok:
-                    body = await resp.text()
-                    print(f"[Collections] GetGems error {resp.status}: {body}")
-                    break
-                data = await resp.json()
-
-            response = data.get("response", {})
-            items = response.get("items") or []
-            cursor = response.get("cursor")
-
-            raw_cols.extend(items)
-
-            if not cursor or len(items) < 100:
-                break
+    # загрузка с GetGems — в fetchers/getgems.py (В8: весь код GetGems в одном месте)
+    try:
+        raw_cols = await fetch_gift_collections(settings.GETGEMS_API_KEY)
+    except Exception as e:
+        log.warning(f"список коллекций GetGems не загрузился: {type(e).__name__}: {e!r}")
+        return []  # НЕ кэшируем: раньше пустой список запоминался на сутки
 
     # двойники (коллекции-копии на релеере GetGems) не показываем:
     # их лоты подмешиваются в основную коллекцию в orchestrator
     mains, _ = split_twins(raw_cols)
+    collections = []
     for col in mains:
         sizes = col.get("imageSizes") or {}
         collections.append({
@@ -287,6 +266,8 @@ async def _collections_list():
             "address": col.get("address", ""),
             "image": sizes.get("352") or sizes.get("96") or col.get("image") or None,
         })
+    if not collections:
+        return []
 
     await redis.setex(COLLECTIONS_CACHE_KEY, COLLECTIONS_CACHE_TTL, json.dumps(collections))
     return collections
@@ -317,7 +298,7 @@ async def get_theme_listings(
             listings = await orchestrator.fetch_listings(item["collection"])
             return apply_filters(listings, item["model"], None, None, attrs={})
         except Exception as e:
-            print(f"[Themes] Error fetching {item['collection']}: {e}")
+            log.warning(f"Error fetching {item['collection']}: {e}")
             return []
 
     results = await asyncio.gather(*[fetch_item(item) for item in theme["items"]])
