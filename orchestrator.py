@@ -27,7 +27,7 @@ STALE_TTL = 6 * 3600
 MEM_MAX_COLLECTIONS = 12
 # В2: Fragment ходит через медленный прокси; у Myth Masks 15 с не хватало (~1 раз из 6).
 FRAGMENT_TIMEOUT = 30.0
-# маркет Telegram: 3 страницы по 100 лотов с паузами ~0.35 с — обычно 1–2 с
+# маркет Telegram: 3 страницы по 100 лотов с паузами 1.2 с — обычно 4–6 с
 TELEGRAM_TIMEOUT = 25.0
 
 
