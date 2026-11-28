@@ -1,4 +1,5 @@
 import time
+from urllib.parse import urlparse
 import asyncio
 import aiohttp
 from decimal import Decimal
@@ -30,17 +31,24 @@ def _normalize(s: str) -> str:
 # GetGems \u043e\u0442\u0434\u0430\u0451\u0442 \u0432 /nfts/on-sale \u0438 \u0447\u0443\u0436\u0438\u0435 \u043b\u043e\u0442\u044b: sale.type == "ExternalSale",
 # sale.link \u2014 \u043f\u0440\u044f\u043c\u0430\u044f \u0441\u0441\u044b\u043b\u043a\u0430 \u043d\u0430 \u043b\u043e\u0442 \u0432 \u043c\u0430\u0440\u043a\u0435\u0442\u0435. fullPrice \u2014 \u0441\u0443\u043c\u043c\u0430 \u0434\u043b\u044f \u043f\u043e\u043a\u0443\u043f\u0430\u0442\u0435\u043b\u044f
 # (\u0443 MRKT GetGems \u0443\u0436\u0435 \u043f\u0440\u0438\u0431\u0430\u0432\u0438\u043b \u0435\u0433\u043e 2%, \u0443 Portals \u0446\u0435\u043d\u0430 \u043a\u0430\u043a \u043d\u0430 \u0441\u0430\u043c\u043e\u043c \u043c\u0430\u0440\u043a\u0435\u0442\u0435).
-_EXTERNAL_MARKETS = (
-    ("t.me/mrkt", Marketplace.MRKT),
-    ("t.me/portals", Marketplace.PORTALS),
-)
+# В4: бот маркетплейса на t.me → маркетплейс. Раньше ссылку проверяли «содержит ли
+# она кусок t.me/mrkt» — проходила любая строка с этим куском где угодно, в том числе
+# javascript:-ссылка. Теперь разбираем ссылку: только https, только t.me, бот — первым в пути.
+_EXTERNAL_MARKETS = {
+    "mrkt": Marketplace.MRKT,
+    "portals": Marketplace.PORTALS,
+}
 
 
 def _external_marketplace(link: str) -> Marketplace | None:
-    for prefix, market in _EXTERNAL_MARKETS:
-        if prefix in link:
-            return market
-    return None
+    try:
+        u = urlparse(link)
+    except ValueError:
+        return None
+    if u.scheme != "https" or u.hostname != "t.me":
+        return None
+    bot = u.path.lstrip("/").split("/", 1)[0].lower()
+    return _EXTERNAL_MARKETS.get(bot)
 
 
 # \u2500\u2500 \u041a\u043e\u043b\u043b\u0435\u043a\u0446\u0438\u0438-\u0434\u0432\u043e\u0439\u043d\u0438\u043a\u0438 \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500

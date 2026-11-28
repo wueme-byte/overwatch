@@ -78,6 +78,13 @@ def _listing_dict(l) -> dict:
     }
 
 
+def _internal_error(e: Exception) -> HTTPException:
+    """В5: подробности сбоя — только в лог сервера; клиенту общая фраза.
+    Текст исключения может содержать адреса, ключи запросов и устройство сервера."""
+    print(f"[API] internal error: {type(e).__name__}: {e!r}", flush=True)
+    return HTTPException(status_code=500, detail="Internal error")
+
+
 async def _canon_collection(name: str) -> str:
     """К3: принимаем только коллекции из нашего списка /collections (по имени или адресу,
     без учёта регистра) и возвращаем каноническое имя. Иначе любой мог бы перебором
@@ -109,7 +116,7 @@ async def get_listings(
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise _internal_error(e)
 
     # сгоревшие и только что проданные/снятые (см. live.py) не показываем
     hidden = await hidden_set(redis)
@@ -165,7 +172,7 @@ async def listings_live(body: LiveCheck):
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise _internal_error(e)
     status = await live_status(redis, listings, [i.model_dump() for i in body.items])
     return {"status": status}
 
@@ -206,7 +213,7 @@ async def get_rarity(collection: str = Query(...)):
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise _internal_error(e)
     if not listings:
         return {}
     return await model_rarity(redis, listings[0].collection_name, listings)

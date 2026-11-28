@@ -225,7 +225,8 @@ export default function ListingCard({ item, isBest, rarity, modelImages = [], on
   return (
     <div ref={hostRef} style={{ position: 'relative', flexShrink: 0 }}>
       <a
-        href={item.listing_url}
+        // ссылка приходит с маркетплейса: в href пускаем только https (защита от javascript:)
+        href={/^https:\/\//i.test(item.listing_url || '') ? item.listing_url : undefined}
         target="_blank"
         rel="noopener noreferrer"
         style={{
