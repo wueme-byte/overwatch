@@ -1,0 +1,15 @@
+# В6: в образ кладём только код бэкенда. Секреты (.env) Docker передаёт отдельно (env_file),
+# фронт собирается и живёт на GitHub Pages.
+.env
+.env.*
+!.env.example
+.git
+.github
+venv
+.venv
+frontend
+tests
+__pycache__
+*.pyc
+*.log
+INTERNALS.md

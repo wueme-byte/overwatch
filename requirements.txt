@@ -1,8 +1,10 @@
-python-telegram-bot>=21.9
-aiohttp==3.9.5
-redis[asyncio]>=5.0.0
-apscheduler==3.10.4
-python-dotenv==1.0.1
-fastapi==0.115.0
-uvicorn==0.30.6
+# Версии закреплены (В6, 28.11.2026): пересборка образа всегда даёт то же самое.
+# pyfragment НЕ обновлять вслепую: fetchers/fragment.py использует его внутренние функции.
+python-telegram-bot==22.8
+aiohttp==3.14.5
+redis[asyncio]==8.2.0
+apscheduler==3.11.3
+python-dotenv==1.2.4
+fastapi==0.165.0
+uvicorn==0.55.0
 pyfragment==2026.1.0

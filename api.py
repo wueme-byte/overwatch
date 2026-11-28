@@ -99,6 +99,14 @@ async def _canon_collection(name: str) -> str:
     raise HTTPException(status_code=404, detail="Unknown collection")
 
 
+@app.get("/health")
+async def health():
+    """В6: для проверки здоровья контейнера (docker healthcheck). Отвечает, только если
+    API живой и видит Redis; ничего тяжёлого не делает."""
+    await redis.ping()
+    return {"ok": True}
+
+
 @app.get("/listings")
 async def get_listings(
     collection: str = Query(..., description="Имя или адрес коллекции"),
