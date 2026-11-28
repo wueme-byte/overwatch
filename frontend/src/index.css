@@ -149,3 +149,15 @@ body {
   opacity: 0.5;
   z-index: 5;
 }
+
+/* П2: у кого в телефоне включено «Уменьшить движение» (iOS) / «Удалить анимацию» (Android) —
+   декоративные анимации не крутятся: радар, линии, пятна, блики стоят на месте.
+   Появления (opacity: 0 → 1) мгновенно доходят до конца, поэтому всё видно.
+   Сгорание/SOLD (fate.js) управляется из JS и продолжает работать. У остальных — без изменений. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
