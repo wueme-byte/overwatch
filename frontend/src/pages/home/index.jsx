@@ -394,12 +394,6 @@ const NetworkLines = () => (
     <circle cx="20%" cy="8%" r="2" fill="#7c3aed" opacity="0.5" className="node-pulse"/>
     <line x1="20%" y1="8%" x2="-8%" y2="18%" stroke="rgba(139,92,246,0.1)" strokeWidth="0.5"/>
 
-    {/* ↗ верхний правый — line-flow */}
-    <line x1="50%" y1="17%" x2="108%" y2="-3%"  stroke="rgba(139,92,246,0.15)" strokeWidth="0.7"/>
-    <line x1="50%" y1="17%" x2="108%" y2="-3%"  stroke="rgba(167,139,250,0.35)" strokeWidth="0.7" className="line-flow" style={{animationDelay:'0.6s'}}/>
-    <circle cx="80%" cy="6%" r="1.8" fill="#a78bfa" opacity="0.5" className="node-pulse" style={{animationDelay:'1s'}}/>
-    <line x1="80%" y1="6%" x2="110%" y2="14%" stroke="rgba(139,92,246,0.1)" strokeWidth="0.5"/>
-
     {/* ← левый — line-slow */}
     <line x1="50%" y1="17%" x2="-5%"  y2="30%"  stroke="rgba(139,92,246,0.12)" strokeWidth="0.6"/>
     <line x1="50%" y1="17%" x2="-5%"  y2="30%"  stroke="rgba(167,139,250,0.3)" strokeWidth="0.6" className="line-slow" style={{animationDelay:'0.3s'}}/>
