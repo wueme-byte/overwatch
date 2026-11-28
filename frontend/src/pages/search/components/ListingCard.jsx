@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { FATE_ANIM, collapse, enter } from './fate'
 import { backdropCss } from '../../../lib/backdropColors'
+import { rarityColor } from '../../../lib/rarity'
 import getgemsLogo from '../../../assets/markets/getgems.png'
 import portalsLogo from '../../../assets/markets/portals.png'
 import gramLogo from '../../../assets/markets/gram.png'
@@ -163,40 +164,14 @@ function BestGlow() {
 // отступ глазика от левого края карточки (px); слева от него — модель + редкость
 const EYE_LEFT = 122
 
-// Уровни редкости крафтовых подарков (вместо процента у них слово)
-const CRAFT_TIERS = {
-  legendary: { rank: -4, color: '#fbbf24' },   // золото
-  epic:      { rank: -3, color: '#c084fc' },   // фиолетовый
-  rare:      { rank: -2, color: '#7dd3fc' },   // голубой
-  uncommon:  { rank: -1, color: '#4ade80' },   // зелёный
-}
-const craftTier = r => CRAFT_TIERS[String(r ?? '').trim().toLowerCase()]
-
-// Для сортировки «от редких к обычным»: крафтовые уровни идут первыми
-// (Legendary → Uncommon), затем проценты по возрастанию, без данных — в конце
-export function rarityRank(r) {
-  const tier = craftTier(r)
-  if (tier) return tier.rank
-  const v = parseFloat(String(r ?? '').replace(',', '.'))
-  return Number.isFinite(v) ? v : Infinity
-}
-
-// Цвет редкости: чем реже, тем «дороже» цвет
-export function rarityColor(pct) {
-  const tier = craftTier(pct)
-  if (tier) return tier.color
-  const v = parseFloat(String(pct).replace(',', '.'))
-  if (v <= 0.5) return '#fbbf24'   // золото
-  if (v <= 1)   return '#c084fc'   // фиолетовый
-  if (v <= 2)   return '#7dd3fc'   // голубой
-  return 'rgba(255,255,255,0.45)'
-}
-
 // fate: 'burned' | 'sold' | 'gone' — лот пропал, играем анимацию и схлопываем место,
 // потом onFateDone(). entering — карточка добралась снизу после пропажи другой.
 export default function ListingCard({ item, isBest, rarity, modelImages = [], onRarityClick, fate, entering, onFateDone }) {
   const hostRef = useRef(null)
   const fateRef = useRef(null)
+  // свежий onFateDone без перезапуска анимации, если родитель передал новую функцию
+  const onFateDoneRef = useRef(onFateDone)
+  useEffect(() => { onFateDoneRef.current = onFateDone })
   useEffect(() => {
     const host = hostRef.current
     if (!fate || !host || fateRef.current) return
@@ -205,14 +180,17 @@ export default function ListingCard({ item, isBest, rarity, modelImages = [], on
       .catch(() => {})
       .then(() => collapse(host))
       .catch(() => {})
-      .then(() => onFateDone?.())
+      .then(() => onFateDoneRef.current?.())
   }, [fate])
-  useEffect(() => { if (entering && hostRef.current) enter(hostRef.current) }, [])
-  // номер текущего источника картинки модели; при ошибке берём следующий
-  const [imgIdx, setImgIdx] = useState(0)
+  // въезд снизу играем один раз — по значению entering в момент появления карточки
+  const [enterOnMount] = useState(entering)
+  useEffect(() => { if (enterOnMount && hostRef.current) enter(hostRef.current) }, [enterOnMount])
+  // номер текущего источника картинки модели; при ошибке берём следующий.
+  // Сменилась модель — снова с первого источника (считаем при отрисовке, без эффекта)
+  const firstSrc = modelImages[0]
+  const [img, setImg] = useState({ first: firstSrc, idx: 0 })
+  const imgIdx = img.first === firstSrc ? img.idx : 0
   const modelImage = modelImages[imgIdx]
-  // карточки переиспользуются между страницами — для новой модели начинаем с первого источника
-  useEffect(() => { setImgIdx(0) }, [modelImages[0]])
   const backdropName = item.attributes?.Backdrop
   const backdropColor = backdropName ? backdropCss(backdropName) : null
   const isFragment = item.marketplace === 'Fragment'
@@ -386,7 +364,7 @@ export default function ListingCard({ item, isBest, rarity, modelImages = [], on
             src={modelImage}
             alt={item.model}
             loading="lazy"
-            onError={() => setImgIdx(i => i + 1)}
+            onError={() => setImg({ first: firstSrc, idx: imgIdx + 1 })}
             style={{
               width: 38, height: 38,
               objectFit: 'contain',

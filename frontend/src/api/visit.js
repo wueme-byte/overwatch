@@ -12,5 +12,5 @@ export function trackVisit(event, collection) {
       body: JSON.stringify({ event, collection: collection ?? null, init_data }),
       keepalive: true,
     }).catch(() => {})
-  } catch {}
+  } catch { /* статистика не должна ломать приложение */ }
 }

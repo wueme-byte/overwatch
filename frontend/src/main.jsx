@@ -7,7 +7,7 @@ import { trackVisit } from './api/visit'
 if (window.Telegram?.WebApp) {
   window.Telegram.WebApp.ready()
   window.Telegram.WebApp.expand()
-  try { window.Telegram.WebApp.requestFullscreen() } catch {}
+  try { window.Telegram.WebApp.requestFullscreen() } catch { /* старый Telegram без fullscreen */ }
 }
 
 trackVisit('open')

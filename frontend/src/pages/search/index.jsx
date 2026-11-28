@@ -65,7 +65,8 @@ export default function Search() {
     .sort((a, b) => collectionRank(a) - collectionRank(b))
 
   if (selected) {
-    return <CollectionListings col={selected} onBack={() => { setSelected(null); setFilter('') }} />
+    // key: другая коллекция — новый экран с чистым состоянием (редкость, фильтры, страница)
+    return <CollectionListings key={selected.name} col={selected} onBack={() => { setSelected(null); setFilter('') }} />
   }
 
   return (

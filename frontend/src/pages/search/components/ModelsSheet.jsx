@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { rarityColor, rarityRank } from './ListingCard'
+import { rarityColor, rarityRank } from '../../../lib/rarity'
 
 // Шторка «все модели коллекции» — как окно в Telegram по тапу на процент.
 // Сетка моделей с картинкой и редкостью, от самых редких; крафтовые (уровень
@@ -9,8 +9,10 @@ import { rarityColor, rarityRank } from './ListingCard'
 const isCrafted = r => r && !String(r).trim().endsWith('%')
 
 function ModelImg({ sources, alt }) {
-  const [idx, setIdx] = useState(0)
-  useEffect(() => { setIdx(0) }, [sources[0]])
+  // сменился список источников — снова с первого (считаем при отрисовке, без эффекта)
+  const first = sources[0]
+  const [state, setState] = useState({ first, idx: 0 })
+  const idx = state.first === first ? state.idx : 0
   const src = sources[idx]
   if (!src) return <div style={{ width: 56, height: 56 }} />
   return (
@@ -18,7 +20,7 @@ function ModelImg({ sources, alt }) {
       src={src}
       alt={alt}
       loading="lazy"
-      onError={() => setIdx(i => i + 1)}
+      onError={() => setState({ first, idx: idx + 1 })}
       style={{ width: 56, height: 56, objectFit: 'contain', display: 'block', filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.5))' }}
     />
   )

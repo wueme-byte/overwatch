@@ -7,11 +7,11 @@ import gramLogo from '../../../assets/markets/gram.png'
 // Наблюдаем внутри прокручиваемого грида (data-lazy-root в pages/search/index.jsx).
 function useNearScreen() {
   const ref = useRef(null)
-  const [near, setNear] = useState(false)
+  // нет IntersectionObserver (очень старый браузер) — грузим сразу
+  const [near, setNear] = useState(() => typeof IntersectionObserver === 'undefined')
   useEffect(() => {
     const el = ref.current
     if (!el || near) return
-    if (typeof IntersectionObserver === 'undefined') { setNear(true); return }
     const io = new IntersectionObserver(
       ([e]) => { if (e.isIntersecting) { setNear(true); io.disconnect() } },
       { root: el.closest('[data-lazy-root]'), rootMargin: '400px 0px' },
