@@ -25,7 +25,7 @@ log = logging.getLogger("Floor")
 
 KEY = "nft:floor"
 GETGEMS_API = "https://api.getgems.io/public-api/v1"
-PAUSE = 1.0
+PAUSE = 2.5  # между коллекциями: и GetGems, и Telegram (125 запросов подряд к Telegram ловили FLOOD_WAIT)
 REFRESH = 15 * 60
 PEEK = 20  # сколько самых дешёвых лотов смотреть (вдруг первые — аукционы/USDT)
 
