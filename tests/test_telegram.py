@@ -45,3 +45,28 @@ def test_collection_name_matches_singular_gift_title():
     assert _norm("Myth Mask") in cands
     assert _norm("Durov's Cap") in _gift_title_candidates("Durov's Caps")
     assert _norm("Plush Pepe") in _gift_title_candidates("Plush Pepes")
+
+
+def test_same_gift_from_getgems_and_telegram_is_one_card(make_listing, fake_redis, monkeypatch):
+    """Лот маркета Telegram, который GetGems видит как свой, показывается один раз — как Telegram."""
+    import asyncio, orchestrator
+    from decimal import Decimal as D
+    gg = make_listing(name="Myth Mask #43880", nft_address="EQonchain", price_ton=D("10.35"))
+    tg = make_listing(name="Myth Mask #43880", nft_address="tg:MythMask-43880", price_ton=D("10.35"),
+                      marketplace=Marketplace.TELEGRAM, uid="telegram:MythMask-43880")
+    other = make_listing(name="Myth Mask #1", nft_address="EQother", price_ton=D("9"))
+    o = orchestrator.NFTOrchestrator(fake_redis)
+
+    async def gg_fetch(*a, **k): return [gg, other]
+    async def tg_fetch(*a, **k): return [tg]
+    async def price(*a, **k): return D("3")
+    async def name(*a, **k): return "Myth Masks"
+    monkeypatch.setattr(o, "_resolve_collection_name", name)
+    monkeypatch.setattr(o, "_getgems_with_twins", gg_fetch)
+    monkeypatch.setattr(orchestrator, "_fetch_ton_price", price)
+    monkeypatch.setattr(orchestrator, "get_fragment_cookies", lambda: None)
+    monkeypatch.setattr(orchestrator.telegram_market, "enabled", True)
+    monkeypatch.setattr(orchestrator.telegram_market, "get_listings", tg_fetch)
+    out = asyncio.run(o._do_fetch("EQ" + "x" * 46))
+    names = [(l.name, l.marketplace) for l in out]
+    assert names == [("Myth Mask #1", Marketplace.GETGEMS), ("Myth Mask #43880", Marketplace.TELEGRAM)]

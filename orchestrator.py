@@ -288,15 +288,21 @@ class NFTOrchestrator:
             else:
                 all_listings.extend(result)
 
+        # Один подарок — одна карточка. Ключ — название с номером («Myth Mask #43880»):
+        # номер уникален в коллекции, а адреса у одного подарка на разных маркетах разные
+        # (маркет Telegram выставляет подарки и через контракт в блокчейне, и GetGems
+        # видит тот же лот как свой). Приоритет: Fragment, затем Telegram, затем дешевле.
+        rank = {Marketplace.FRAGMENT: 0, Marketplace.TELEGRAM: 1}
         seen: dict[str, NFTListing] = {}
         for listing in all_listings:
-            addr = listing.nft_address
-            if addr not in seen:
-                seen[addr] = listing
-            elif listing.marketplace == Marketplace.FRAGMENT:
-                seen[addr] = listing
-            elif seen[addr].marketplace != Marketplace.FRAGMENT and _usd_sort_key(listing, ton_price) < _usd_sort_key(seen[addr], ton_price):
-                seen[addr] = listing
+            key = listing.name if "#" in (listing.name or "") else listing.nft_address
+            cur = seen.get(key)
+            if cur is None:
+                seen[key] = listing
+                continue
+            a, b = rank.get(listing.marketplace, 9), rank.get(cur.marketplace, 9)
+            if a < b or (a == b and _usd_sort_key(listing, ton_price) < _usd_sort_key(cur, ton_price)):
+                seen[key] = listing
 
         deduped = sorted(seen.values(), key=lambda x: _usd_sort_key(x, ton_price))
 
