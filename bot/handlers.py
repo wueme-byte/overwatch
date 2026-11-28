@@ -84,9 +84,11 @@ def make_handlers(redis: Redis):
     async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         keyboard = InlineKeyboardMarkup([
             [
+                # Ссылка на Main App, а не web_app: так приложение открывается в режиме
+                # из BotFather (Fullscreen), как по синей кнопке меню
                 InlineKeyboardButton(
-                    "Start Overwatch",
-                    web_app=WebAppInfo(url="https://overwatchgifts.help/"),
+                    "Scan Whole Market",
+                    url="https://t.me/Overwatch_Gifts_bot?startapp&mode=fullscreen",
                     style="success"
                 )
             ],
