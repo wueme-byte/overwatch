@@ -1,23 +1,13 @@
 import asyncio
 import signal
-from redis.asyncio import from_url
 from telegram.ext import Application, CommandHandler
-from bot.handlers import make_handlers
+from bot.handlers import cmd_start
 from config.settings import settings
 
 
 async def run():
-    redis = from_url(settings.REDIS_URL, decode_responses=True)
-    cmd_start, cmd_collection, cmd_models, cmd_track, cmd_untrack, cmd_mysubs, cmd_theme = make_handlers(redis)
-
     app = Application.builder().token(settings.BOT_TOKEN).build()
     app.add_handler(CommandHandler("start", cmd_start))
-    app.add_handler(CommandHandler("collection", cmd_collection))
-    app.add_handler(CommandHandler("models", cmd_models))
-    app.add_handler(CommandHandler("track", cmd_track))
-    app.add_handler(CommandHandler("untrack", cmd_untrack))
-    app.add_handler(CommandHandler("mysubs", cmd_mysubs))
-    app.add_handler(CommandHandler("theme", cmd_theme))
 
     print("Bot started.")
     await app.initialize()

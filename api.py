@@ -15,7 +15,7 @@ from supply import load_supply_seed, supply_loop, get_all as get_supply
 from floor import floor_loop, get_all as get_floor
 from live import live_status, hidden_set, is_hidden
 from stats import record as record_visit, verify_init_data
-from warm import warm_loop
+from warm import warm_loop, NEW_COLLECTIONS
 from config.settings import settings
 
 COLLECTIONS_CACHE_KEY = "nft:collections"
@@ -233,7 +233,11 @@ async def get_collections():
     # supply и флор подмешиваем при каждом ответе (не в кэш) — свежие числа видны сразу
     supply = await get_supply(redis)
     floor = await get_floor(redis)
-    return [{**c, "supply": supply.get(c["name"]), "floor": floor.get(c["name"])} for c in collections]
+    new_rank = {n: i for i, n in enumerate(NEW_COLLECTIONS)}
+    return [{**c, "supply": supply.get(c["name"]), "floor": floor.get(c["name"]),
+             # В7: категория NEW задаётся только на сервере (warm.NEW_COLLECTIONS)
+             "is_new": c["name"] in new_rank, "new_rank": new_rank.get(c["name"])}
+            for c in collections]
 
 
 async def _collections_list():

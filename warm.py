@@ -4,12 +4,14 @@
 обновляет эти коллекции раз в WARM_EVERY секунд. Запасная копия (stale, 6 ч) всегда есть,
 поэтому список открывается сразу, а свежие данные догружаются в фоне.
 
-Список должен совпадать с NEW_COLLECTIONS во frontend/src/pages/search/index.jsx
-(там подстроки, здесь точные имена коллекций, как их шлёт фронт).
+Это ЕДИНСТВЕННОЕ место, где задаётся категория NEW (В7): /collections отдаёт по этому
+списку поля is_new и new_rank, приложение берёт плашку NEW и порядок оттуда.
+Порядок в списке = порядок на экране.
 """
 import asyncio
 
-WARM_COLLECTIONS = ["Hoarse Horses", "Resistance Dogs", "Myth Masks"]
+NEW_COLLECTIONS = ["Hoarse Horses", "Resistance Dogs", "Myth Masks"]
+WARM_COLLECTIONS = NEW_COLLECTIONS
 WARM_EVERY = 20 * 60
 
 
