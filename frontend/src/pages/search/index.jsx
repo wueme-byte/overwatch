@@ -82,7 +82,7 @@ export default function Search() {
           position: 'sticky',
           top: 0,
           zIndex: 20,
-          paddingTop: 13,
+          paddingTop: 'calc(13px + var(--tg-top))',
           paddingBottom: 12,
           // отступы заданы явно: классы Tailwind px-* перебивает сброс * { padding: 0 } в index.css
           paddingLeft: 16,

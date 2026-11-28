@@ -318,7 +318,7 @@ export default function CollectionListings({ col, onBack }) {
       {/* ── шапка ── */}
       <div style={{
         position: 'sticky', top: 0, zIndex: 20,
-        padding: '12px 16px 12px',
+        padding: 'calc(12px + var(--tg-top)) 16px 12px',
         background: 'linear-gradient(180deg, rgba(88,28,220,0.18) 0%, rgba(60,10,160,0.08) 100%)',
         backdropFilter: 'blur(12px)',
         borderBottom: '1px solid rgba(139,92,246,0.15)',

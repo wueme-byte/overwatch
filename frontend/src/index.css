@@ -6,6 +6,13 @@
   padding: 0;
 }
 
+/* Полноэкранный режим Telegram: сверху поверх приложения часы/батарея (safe area)
+   и кнопки Telegram «Закрыть», «⌄ ⋯» (content safe area). Telegram сам задаёт эти
+   переменные; в обычном режиме и в браузере их нет → 0. */
+:root {
+  --tg-top: calc(var(--tg-safe-area-inset-top, 0px) + var(--tg-content-safe-area-inset-top, 0px));
+}
+
 body {
   font-family: 'Manrope', system-ui, sans-serif;
   background: #080808;
