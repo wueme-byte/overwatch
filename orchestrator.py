@@ -7,6 +7,7 @@ import aiohttp
 from decimal import Decimal
 from redis.asyncio import Redis
 from fetchers import GetGemsClient, FragmentClient
+from fetchers.telegram import telegram_market
 from models import NFTListing, Marketplace
 from config.settings import settings, get_fragment_cookies
 import logging
@@ -26,6 +27,8 @@ STALE_TTL = 6 * 3600
 MEM_MAX_COLLECTIONS = 12
 # В2: Fragment ходит через медленный прокси; у Myth Masks 15 с не хватало (~1 раз из 6).
 FRAGMENT_TIMEOUT = 30.0
+# маркет Telegram: 3 страницы по 100 лотов с паузами ~0.35 с — обычно 1–2 с
+TELEGRAM_TIMEOUT = 25.0
 
 
 async def _fetch_ton_price(session: aiohttp.ClientSession) -> Decimal:
@@ -150,6 +153,20 @@ class NFTOrchestrator:
                 listings.extend(res)
         return listings
 
+    async def _with_last_good(self, short: str, source: str, slug: str, display_name: str,
+                              result, asked: bool):
+        """Удачный ответ источника запоминаем; при ошибке подставляем прошлый удачный."""
+        key = f"nft:{short}:{slug}"
+        if isinstance(result, Exception):
+            saved = await self.redis.get(key)
+            if saved:
+                log.warning(f"{source} не ответил ({type(result).__name__}) — беру прошлый ответ для {display_name}")
+                return [_deserialize_listing(i) for i in json.loads(saved)]
+            return result
+        if asked:
+            await self.redis.setex(key, STALE_TTL, json.dumps([vars(l) for l in result], default=str))
+        return result
+
     async def fetch_listings(self, collection_slug: str, force_refresh: bool = False) -> list[NFTListing]:
         key = self._cache_key(collection_slug)
 
@@ -211,6 +228,7 @@ class NFTOrchestrator:
                 self._getgems_with_twins(gg, col_addr, display_name),
                 _fetch_ton_price(session),
             ]
+            frag_idx = None
 
             frag_cookies = get_fragment_cookies()
             if not frag_cookies:
@@ -220,26 +238,30 @@ class NFTOrchestrator:
                 log.warning(f"Имя коллекции {col_addr[:10]}... не определено — Fragment пропущен")
             else:
                 frag = FragmentClient(frag_cookies)
+                frag_idx = len(tasks)
                 tasks.append(asyncio.wait_for(frag.get_listings(col_addr, col_name), timeout=FRAGMENT_TIMEOUT))
+
+            # внутренний маркет Telegram (отдельный маркет, свой сборщик — fetchers/telegram.py)
+            tg_idx = None
+            if telegram_market.enabled and col_name:
+                tg_idx = len(tasks)
+                tasks.append(asyncio.wait_for(telegram_market.get_listings(col_addr, col_name), timeout=TELEGRAM_TIMEOUT))
 
             results = await asyncio.gather(*tasks, return_exceptions=True)
 
         gg_results = results[0]
         ton_price = results[1] if isinstance(results[1], Decimal) else TON_PRICE_FALLBACK
-        frag_results = results[2] if len(results) > 2 else []
+        frag_results = results[frag_idx] if frag_idx is not None else []
+        tg_results = results[tg_idx] if tg_idx is not None else []
 
-        # В2: последний удачный ответ Fragment храним отдельно. Если Fragment не ответил
-        # (таймаут, прокси), берём его — иначе лоты Fragment пропадали из выдачи до
-        # следующего обновления. Проданные из этой копии всё равно уберёт живой опрос.
-        frag_key = f"nft:frag:{collection_slug}"
-        if isinstance(frag_results, Exception):
-            saved = await self.redis.get(frag_key)
-            if saved:
-                log.warning(f"Fragment не ответил ({type(frag_results).__name__}) — "
-                      f"беру прошлый ответ для {display_name}")
-                frag_results = [_deserialize_listing(i) for i in json.loads(saved)]
-        elif len(results) > 2:
-            await self.redis.setex(frag_key, STALE_TTL, json.dumps([vars(l) for l in frag_results], default=str))
+        # В2: последний удачный ответ Fragment и Telegram храним отдельно. Если источник
+        # не ответил (таймаут, прокси, FLOOD_WAIT), берём его прошлый ответ — иначе его
+        # лоты пропадали из выдачи до следующего обновления. Проданные из этой копии
+        # всё равно уберёт живой опрос.
+        frag_results = await self._with_last_good("frag", "Fragment", collection_slug, display_name,
+                                                   frag_results, frag_idx is not None)
+        tg_results = await self._with_last_good("tg", "Telegram", collection_slug, display_name,
+                                                 tg_results, tg_idx is not None)
 
         log.debug(f"Курс TON: ${ton_price}")
 
@@ -259,7 +281,7 @@ class NFTOrchestrator:
             frag_results = enriched_frag
 
         all_listings: list[NFTListing] = []
-        for source, result in (("GetGems", gg_results), ("Fragment", frag_results)):
+        for source, result in (("GetGems", gg_results), ("Fragment", frag_results), ("Telegram", tg_results)):
             if isinstance(result, Exception):
                 log.warning(f"Fetcher error [{source}] ({display_name}): "
                       f"{type(result).__name__}: {result!r}")

@@ -8,6 +8,7 @@ import gramLogo from '../../../assets/markets/gram.png'
 import getgemsPattern from '../../../assets/markets/getgems-pattern.jpg'
 import portalsPattern from '../../../assets/markets/portals-pattern.png'
 import mrktPattern from '../../../assets/markets/mrkt-pattern.png'
+import telegramLogo from '../../../assets/markets/telegram.svg'
 
 // Фирменный стиль площадок (цвета сняты с их логотипов).
 // Маркет обозначают полоска слева, лёгкий оттенок фона и бейдж под ценой.
@@ -31,6 +32,14 @@ const MARKETS = {
     badge: { top: '#fff07a', bottom: '#f2c500', edge: '#a88600', color: '#050706' },
     bold: true,
     pattern: { src: mrktPattern, size: 44, opacity: 0.14, brick: true },
+  },
+  // маркет внутри самого Telegram. Фирменный синий Telegram почти совпадает с голубым
+  // GetGems, поэтому у него «серебряный» белый бейдж с синей надписью и самолётиком
+  Telegram: {
+    rgb: '203,213,225',
+    badge: { top: '#ffffff', bottom: '#dbe7f3', edge: '#8a9bb0', color: '#1d8fd8' },
+    logo: telegramLogo,
+    bold: true,
   },
   // оранжевый, а не янтарный — иначе сливается с жёлтым MRKT
   Fragment: {
@@ -292,6 +301,13 @@ export default function ListingCard({ item, isBest, rarity, modelImages = [], on
                 fontWeight: 600,
                 color: '#ffffff',
               }}>Auction</span>
+            )}
+            {/* у лота с маркета Telegram — его цена в звёздах (Telegram сам даёт и цену в TON) */}
+            {item.marketplace === 'Telegram' && item.attributes?.tg_stars && (
+              <span style={{ ...PILL, color: 'rgba(255,255,255,0.75)', background: 'rgba(255,255,255,0.07)', fontVariantNumeric: 'tabular-nums' }}>
+                <svg width="9" height="9" viewBox="0 0 24 24" fill="#f5c451" aria-hidden="true"><polygon points="12 2 15 9 22 9.5 16.5 14 18.5 21 12 17 5.5 21 7.5 14 2 9.5 9 9" /></svg>
+                {Number(item.attributes.tg_stars).toLocaleString('en-US')}
+              </span>
             )}
             <MarketBadge name={item.marketplace} />
           </div>

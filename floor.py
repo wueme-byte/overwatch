@@ -2,6 +2,7 @@
 
 Источник: GetGems /nfts/on-sale/{адрес} — лоты идут от дешёвых к дорогим, и среди них
 есть лоты MRKT и Portals (ExternalSale), так что флор общий по трём маркетам.
+Плюс маркет внутри Telegram (fetchers/telegram.py): берём минимум из двух.
 Fragment не учитывается (он почти никогда не дешевле).
 Аукционы и лоты в USDT пропускаем: флор — только фикс-цена в TON.
 
@@ -18,6 +19,7 @@ import aiohttp
 from redis.asyncio import Redis
 
 from config.settings import settings
+from fetchers.telegram import telegram_market
 import logging
 log = logging.getLogger("Floor")
 
@@ -63,6 +65,13 @@ async def collect(redis: Redis, collections: list[dict]) -> int:
             except Exception as e:
                 log.warning(f"{name}: {e!r}")
                 floor = None
+            # маркет Telegram: если там дешевле — флор оттуда
+            try:
+                tg = await telegram_market.floor_ton(name)
+                if tg is not None and (floor is None or tg < floor):
+                    floor = tg
+            except Exception as e:
+                log.warning(f"{name} (Telegram): {type(e).__name__}: {e!r}")
             if floor is not None:
                 await redis.hset(KEY, name, f"{floor.normalize():f}")
                 done += 1

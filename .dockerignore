@@ -13,3 +13,6 @@ __pycache__
 *.pyc
 *.log
 INTERNALS.md
+tg-data
+*.session
+*.session-journal

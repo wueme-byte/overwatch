@@ -9,6 +9,7 @@ from redis.asyncio import from_url
 from orchestrator import NFTOrchestrator
 from filters import apply_filters
 from fetchers.getgems import split_twins, fetch_gift_collections
+from fetchers.telegram import telegram_market
 from rarity import model_rarity, load_seed
 from supply import load_supply_seed, supply_loop, get_all as get_supply
 from floor import floor_loop, get_all as get_floor
@@ -43,12 +44,16 @@ async def lifespan(app: FastAPI):
         await load_supply_seed(redis)
     except Exception as e:
         log.warning(f"seed not loaded: {e}")
+    # маркет внутри Telegram — до флора, чтобы первый же подсчёт его учёл.
+    # Нет сессии — просто выключен (fetchers/telegram.py)
+    await telegram_market.start()
     supply_task = asyncio.create_task(supply_loop(redis, _collections_list))
     # флор по коллекциям для карточек на Search — фон, раз в 15 минут
     floor_task = asyncio.create_task(floor_loop(redis, _collections_list))
     # коллекции из NEW держим загруженными, чтобы открывались сразу
     warm_task = asyncio.create_task(warm_loop(orchestrator))
     yield
+    await telegram_market.stop()
     supply_task.cancel()
     floor_task.cancel()
     warm_task.cancel()

@@ -16,3 +16,8 @@ frontend/dist/
 .DS_Store
 *.log
 INTERNALS.md
+
+# сессия технического аккаунта Telegram (маркет) — только на сервере
+tg-data/
+*.session
+*.session-journal

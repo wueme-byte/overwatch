@@ -12,6 +12,10 @@ services:
     ports:
       # К2: только для nginx и cloudflared на этом же сервере, не наружу
       - "127.0.0.1:8001:8001"
+    # маркет Telegram: папка с сессией технического аккаунта и его ключами (на сервере
+    # TG_HOST_DIR=/root/overwatch-tg задан в .env; локально — пустая ./tg-data, маркет выключен)
+    volumes:
+      - ${TG_HOST_DIR:-./tg-data}:/tg
     # В6: Docker раз в минуту спрашивает /health; три неудачи подряд — контейнер помечается unhealthy
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8001/health', timeout=5)"]

@@ -9,6 +9,7 @@ class Marketplace(str, Enum):
     FRAGMENT = "Fragment"
     MRKT = "MRKT"           # приходят через GetGems как ExternalSale
     PORTALS = "Portals"     # приходят через GetGems как ExternalSale
+    TELEGRAM = "Telegram"   # маркет перепродажи внутри Telegram (fetchers/telegram.py)
 
 
 @dataclass(frozen=True)
