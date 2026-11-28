@@ -1,20 +1,48 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import gramLogo from '../../../assets/markets/gram.png'
+
+// Картинку коллекции грузим, только когда карточка подъехала к экрану на ~полэкрана.
+// Встроенный loading="lazy" не подходит: Chrome/Android заранее тянет всё в пределах
+// 1250–2500px, а весь грид ~3500px — выходило 125 картинок (~10 МБ) сразу.
+// Наблюдаем внутри прокручиваемого грида (data-lazy-root в pages/search/index.jsx).
+function useNearScreen() {
+  const ref = useRef(null)
+  const [near, setNear] = useState(false)
+  useEffect(() => {
+    const el = ref.current
+    if (!el || near) return
+    if (typeof IntersectionObserver === 'undefined') { setNear(true); return }
+    const io = new IntersectionObserver(
+      ([e]) => { if (e.isIntersecting) { setNear(true); io.disconnect() } },
+      { root: el.closest('[data-lazy-root]'), rootMargin: '400px 0px' },
+    )
+    io.observe(el)
+    return () => io.disconnect()
+  }, [near])
+  return [ref, near]
+}
 
 function CollectionAvatar({ col }) {
   const [imgOk, setImgOk] = useState(!!col.image)
+  const [ref, near] = useNearScreen()
   const initials = col.name.split(' ').slice(0, 2).map(w => w[0]?.toUpperCase()).join('')
-  return imgOk ? (
-    <img
-      src={col.image}
-      alt={col.name}
-      className="w-full h-full object-cover"
-      referrerPolicy="no-referrer"
-      onError={() => setImgOk(false)}
-    />
-  ) : (
+  if (!imgOk) return (
     <div className="w-full h-full flex items-center justify-center text-lg font-semibold text-gray-300">
       {initials}
+    </div>
+  )
+  return (
+    <div ref={ref} className="w-full h-full">
+      {near && (
+        <img
+          src={col.image}
+          alt={col.name}
+          className="w-full h-full object-cover"
+          decoding="async"
+          referrerPolicy="no-referrer"
+          onError={() => setImgOk(false)}
+        />
+      )}
     </div>
   )
 }

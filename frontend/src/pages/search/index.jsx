@@ -153,7 +153,7 @@ export default function Search() {
 
       {/* грид коллекций */}
 
-      <div className="flex-1 overflow-y-auto relative z-10" style={{ paddingTop: 10, paddingLeft: 16, paddingRight: 16, paddingBottom: 32 }}>
+      <div data-lazy-root className="flex-1 overflow-y-auto relative z-10" style={{ paddingTop: 10, paddingLeft: 16, paddingRight: 16, paddingBottom: 32 }}>
         {loadingCols ? (
           <div className="flex items-center justify-center py-20 gap-3 text-sm" style={{ color: 'rgba(167,139,250,0.5)' }}>
             <svg className="animate-spin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
