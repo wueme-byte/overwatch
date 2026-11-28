@@ -4,12 +4,12 @@ const BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
 // Тихо: никаких ошибок пользователю, если сервер не ответил.
 export function trackVisit(event, collection) {
   try {
-    const u = window.Telegram?.WebApp?.initDataUnsafe?.user
-    const user = u ? { id: u.id, username: u.username, first_name: u.first_name, last_name: u.last_name } : null
+    // initData подписана Telegram — сервер проверит подпись и только тогда поверит, кто это
+    const init_data = window.Telegram?.WebApp?.initData || null
     fetch(`${BASE}/visit`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ event, collection: collection ?? null, user }),
+      body: JSON.stringify({ event, collection: collection ?? null, init_data }),
       keepalive: true,
     }).catch(() => {})
   } catch {}

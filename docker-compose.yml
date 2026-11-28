@@ -2,13 +2,16 @@
 services:
   redis:
     image: redis:7-alpine
+    # К4: потолок памяти, при нехватке вытесняются давно не нужные ключи (сервер 1 ГБ)
+    command: redis-server --maxmemory 200mb --maxmemory-policy allkeys-lru
     restart: always
 
   api:
     build: .
     command: uvicorn api:app --host 0.0.0.0 --port 8001
     ports:
-      - "8001:8001"
+      # К2: только для nginx и cloudflared на этом же сервере, не наружу
+      - "127.0.0.1:8001:8001"
     env_file: .env
     depends_on:
       - redis

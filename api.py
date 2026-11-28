@@ -14,7 +14,7 @@ from rarity import model_rarity, load_seed
 from supply import load_supply_seed, supply_loop, get_all as get_supply
 from floor import floor_loop, get_all as get_floor
 from live import live_status, hidden_set, is_hidden
-from stats import record as record_visit
+from stats import record as record_visit, verify_init_data
 from warm import warm_loop
 from config.settings import settings
 
@@ -78,6 +78,20 @@ def _listing_dict(l) -> dict:
     }
 
 
+async def _canon_collection(name: str) -> str:
+    """К3: принимаем только коллекции из нашего списка /collections (по имени или адресу,
+    без учёта регистра) и возвращаем каноническое имя. Иначе любой мог бы перебором
+    названий гонять запросы к GetGems и платному прокси Fragment и засорять Redis."""
+    key = (name or "").strip().lower()
+    cols = await _collections_list()
+    if not cols:
+        return name  # список не загрузился (GetGems лёг) — не блокируем всё приложение
+    for c in cols:
+        if c["name"].lower() == key or (c.get("address") or "").lower() == key:
+            return c["name"]
+    raise HTTPException(status_code=404, detail="Unknown collection")
+
+
 @app.get("/listings")
 async def get_listings(
     collection: str = Query(..., description="Имя или адрес коллекции"),
@@ -89,6 +103,7 @@ async def get_listings(
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=500),
 ):
+    collection = await _canon_collection(collection)
     try:
         listings = await orchestrator.fetch_listings(collection)
     except ValueError as e:
@@ -144,6 +159,7 @@ class LiveCheck(BaseModel):
 @app.post("/listings/live")
 async def listings_live(body: LiveCheck):
     """Какие из карточек на экране сгорели / проданы / сняты: {"status": {адрес: "burned"|"sold"|"gone"}}."""
+    body.collection = await _canon_collection(body.collection)
     try:
         listings = await orchestrator.fetch_listings(body.collection)
     except ValueError as e:
@@ -156,16 +172,25 @@ async def listings_live(body: LiveCheck):
 
 class Visit(BaseModel):
     event: str = Field(..., pattern="^(open|collection)$")
-    collection: str | None = None
-    user: dict | None = None
+    collection: str | None = Field(None, max_length=100)
+    # Telegram.WebApp.initData — строка, подписанная Telegram ключом нашего бота
+    init_data: str | None = Field(None, max_length=4096)
 
 
 @app.post("/visit")
 async def visit(body: Visit, request: Request):
-    """Счётчик посетителей (см. stats.py). Ошибки глотаем — статистика не должна ломать приложение."""
+    """Счётчик посетителей (см. stats.py). Ошибки глотаем — статистика не должна ломать приложение.
+    К4: кто зашёл, берём только из initData с верной подписью Telegram; без неё — гость по IP."""
     ip = request.headers.get("x-real-ip") or (request.client.host if request.client else None)
+    user = verify_init_data(body.init_data, settings.BOT_TOKEN) if body.init_data else None
+    collection = None
+    if body.event == "collection" and body.collection:
+        try:
+            collection = await _canon_collection(body.collection)
+        except HTTPException:
+            return {"ok": True}  # незнакомую коллекцию в статистику не пишем
     try:
-        await record_visit(redis, body.event, body.collection, body.user, ip, request.headers.get("user-agent"))
+        await record_visit(redis, body.event, collection, user, ip, request.headers.get("user-agent"))
     except Exception as e:
         print(f"[Stats] {type(e).__name__}: {e!r}", flush=True)
     return {"ok": True}
@@ -175,6 +200,7 @@ async def visit(body: Visit, request: Request):
 async def get_rarity(collection: str = Query(...)):
     """Редкость моделей коллекции: {"Hue Jester": "3%", ...}.
     Отдельно от /listings: первый раз собирается несколько секунд, дальше из Redis."""
+    collection = await _canon_collection(collection)
     try:
         listings = await orchestrator.fetch_listings(collection)
     except ValueError as e:

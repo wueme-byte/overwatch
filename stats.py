@@ -12,14 +12,40 @@ Redis:
 
 Посмотреть: docker exec overwatch-api-1 python stats.py [дней=4]
 """
+import hashlib
+import hmac
 import json
 import sys
 import time
+from urllib.parse import parse_qsl
 from datetime import datetime, timezone, timedelta
 
 DAY_TTL = 90 * 86400
 KYIV = timezone(timedelta(hours=2))
 MAX_LOG_PER_DAY = 5000
+
+
+def verify_init_data(init_data: str, bot_token: str, max_age: int = 86400) -> dict | None:
+    """Проверка подписи Telegram WebApp initData (core.telegram.org/bots/webapps).
+    Подделать нельзя без токена бота. Возвращает user или None."""
+    if not init_data or not bot_token:
+        return None
+    try:
+        pairs = dict(parse_qsl(init_data, keep_blank_values=True, strict_parsing=True))
+        got = pairs.pop("hash", None)
+        if not got:
+            return None
+        check = "\n".join(f"{k}={v}" for k, v in sorted(pairs.items()))
+        secret = hmac.new(b"WebAppData", bot_token.encode(), hashlib.sha256).digest()
+        want = hmac.new(secret, check.encode(), hashlib.sha256).hexdigest()
+        if not hmac.compare_digest(want, got):
+            return None
+        if time.time() - int(pairs.get("auth_date", "0")) > max_age:
+            return None
+        user = json.loads(pairs.get("user", "null"))
+        return user if isinstance(user, dict) and isinstance(user.get("id"), int) else None
+    except Exception:
+        return None
 
 
 def _day(ts: float | None = None) -> str:
@@ -58,6 +84,7 @@ async def record(redis, event: str, collection: str | None, user: dict | None, i
         info["ua"] = ua[:200]
     pipe.hset(ukey, mapping=info)
     pipe.hsetnx(ukey, "first_seen", int(now))
+    pipe.expire(ukey, DAY_TTL)  # К4: не копим записи вечно — 90 дней с последнего захода
     await pipe.execute()
 
 
