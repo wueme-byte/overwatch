@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import Home from './pages/home'
 import Search from './pages/search'
 import Themes from './pages/themes'
@@ -10,6 +10,12 @@ function isDesktop() {
   return mq.matches && window.innerWidth > 768
 }
 
+// П3: неизвестный адрес (опечатка, старая ссылка) — на главную, а не пустой экран
+function ToHome() {
+  const { search, hash } = useLocation()
+  return <Navigate to={{ pathname: '/', search, hash }} replace />
+}
+
 export default function App() {
   if (isDesktop()) return <DesktopBlock />
 
@@ -19,6 +25,7 @@ export default function App() {
         <Route path="/" element={<Home />} />
         <Route path="/search" element={<Search />} />
         <Route path="/themes" element={<Themes />} />
+        <Route path="*" element={<ToHome />} />
       </Routes>
     </BrowserRouter>
   )

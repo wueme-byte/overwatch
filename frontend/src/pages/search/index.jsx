@@ -43,6 +43,15 @@ const collectionRank = col => {
   return name.includes('toy bear') ? 1 : 0
 }
 
+// П4: загрузка списка коллекций. Пустой ответ или сбой — это ошибка загрузки,
+// а не «ничего не найдено» (раньше показывалось «Nothing found» без кнопки повтора)
+function loadCollections(setCollections, setColsError, setLoadingCols) {
+  fetchCollections()
+    .then(list => { setCollections(list); setColsError(!list?.length) })
+    .catch(() => setColsError(true))
+    .finally(() => setLoadingCols(false))
+}
+
 export default function Search() {
   const navigate = useNavigate()
 
@@ -50,15 +59,16 @@ export default function Search() {
   const [collections, setCollections] = useState([])
   const [searchOpen, setSearchOpen]   = useState(false)
   const [loadingCols, setLoadingCols] = useState(true)
+  const [colsError, setColsError]     = useState(false)
   const [filter, setFilter]           = useState('')
   const [selected, setSelected]       = useState(null)
 
-  useEffect(() => {
-    fetchCollections()
-      .then(setCollections)
-      .catch(() => {})
-      .finally(() => setLoadingCols(false))
-  }, [])
+  useEffect(() => { loadCollections(setCollections, setColsError, setLoadingCols) }, [])
+  const retryCollections = () => {
+    setLoadingCols(true)
+    setColsError(false)
+    loadCollections(setCollections, setColsError, setLoadingCols)
+  }
 
   const filtered = collections
     .filter(c => c.name.toLowerCase().includes(filter.toLowerCase().trim()))
@@ -123,7 +133,7 @@ export default function Search() {
               WebkitTextFillColor: 'transparent',
               margin: 0,
             }}>Gifts</h1>
-            {!loadingCols && (
+            {!loadingCols && !colsError && (
               <span style={{
                 fontSize: 11,
                 fontWeight: 500,
@@ -157,6 +167,23 @@ export default function Search() {
               <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
             </svg>
             Loading collections...
+          </div>
+        ) : colsError ? (
+          // тот же вид, что у ошибки загрузки лотов в коллекции
+          <div style={{
+            background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)',
+            borderRadius: 14, padding: '16px', color: '#f87171', fontSize: 13, marginTop: 12,
+            display: 'flex', flexDirection: 'column', gap: 12, alignItems: 'center', textAlign: 'center',
+          }}>
+            <span>Failed to load collections. Please try again.</span>
+            <button
+              onClick={retryCollections}
+              style={{
+                padding: '7px 20px', borderRadius: 999, fontSize: 12, fontWeight: 600,
+                background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)',
+                color: '#f87171', cursor: 'pointer',
+              }}
+            >Try again</button>
           </div>
         ) : (
           <div className="grid grid-cols-4 gap-2">
