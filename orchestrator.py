@@ -22,6 +22,8 @@ STALE_TTL = 6 * 3600
 # В1: сколько коллекций держать разобранными в памяти процесса (самые недавние).
 # Myth Masks ~17 800 лотов — самая крупная; остальные в разы меньше.
 MEM_MAX_COLLECTIONS = 12
+# В2: Fragment ходит через медленный прокси; у Myth Masks 15 с не хватало (~1 раз из 6).
+FRAGMENT_TIMEOUT = 30.0
 
 
 async def _fetch_ton_price(session: aiohttp.ClientSession) -> Decimal:
@@ -216,13 +218,26 @@ class NFTOrchestrator:
                 print(f"[Orchestrator] Имя коллекции {col_addr[:10]}... не определено — Fragment пропущен")
             else:
                 frag = FragmentClient(frag_cookies)
-                tasks.append(asyncio.wait_for(frag.get_listings(col_addr, col_name), timeout=15.0))
+                tasks.append(asyncio.wait_for(frag.get_listings(col_addr, col_name), timeout=FRAGMENT_TIMEOUT))
 
             results = await asyncio.gather(*tasks, return_exceptions=True)
 
         gg_results = results[0]
         ton_price = results[1] if isinstance(results[1], Decimal) else TON_PRICE_FALLBACK
         frag_results = results[2] if len(results) > 2 else []
+
+        # В2: последний удачный ответ Fragment храним отдельно. Если Fragment не ответил
+        # (таймаут, прокси), берём его — иначе лоты Fragment пропадали из выдачи до
+        # следующего обновления. Проданные из этой копии всё равно уберёт живой опрос.
+        frag_key = f"nft:frag:{collection_slug}"
+        if isinstance(frag_results, Exception):
+            saved = await self.redis.get(frag_key)
+            if saved:
+                print(f"[Orchestrator] Fragment не ответил ({type(frag_results).__name__}) — "
+                      f"беру прошлый ответ для {display_name}")
+                frag_results = [_deserialize_listing(i) for i in json.loads(saved)]
+        elif len(results) > 2:
+            await self.redis.setex(frag_key, STALE_TTL, json.dumps([vars(l) for l in frag_results], default=str))
 
         print(f"[Orchestrator] Курс TON: ${ton_price}")
 
