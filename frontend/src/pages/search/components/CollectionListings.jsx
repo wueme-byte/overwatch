@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { fetchListings, fetchRarity, checkLive } from '../../../api/listings'
+import { trackVisit } from '../../../api/visit'
 import ListingCard, { rarityColor, rarityRank } from './ListingCard'
 import ModelsSheet from './ModelsSheet'
 import { backdropCss } from '../../../lib/backdropColors'
@@ -143,6 +144,9 @@ export default function CollectionListings({ col, onBack }) {
   itemsRef.current = items
   const enteringRef                         = useRef(new Set())   // адреса, добравшиеся снизу
   const refillTimer                         = useRef(null)
+  // счётчик: кто какую коллекцию открыл
+  useEffect(() => { trackVisit('collection', col.name) }, [col.name])
+
   const paramsKey = JSON.stringify([col.name, page, modelFilter, backdropFilter])
   const paramsRef                           = useRef(paramsKey)
   paramsRef.current = paramsKey

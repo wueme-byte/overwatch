@@ -3,7 +3,7 @@ import asyncio
 import aiohttp
 from pathlib import Path
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException, Query, Request
 from pydantic import BaseModel, Field
 from fastapi.middleware.cors import CORSMiddleware
 from redis.asyncio import from_url
@@ -14,6 +14,8 @@ from rarity import model_rarity, load_seed
 from supply import load_supply_seed, supply_loop, get_all as get_supply
 from floor import floor_loop, get_all as get_floor
 from live import live_status, hidden_set, is_hidden
+from stats import record as record_visit
+from warm import warm_loop
 from config.settings import settings
 
 COLLECTIONS_CACHE_KEY = "nft:collections"
@@ -41,9 +43,12 @@ async def lifespan(app: FastAPI):
     supply_task = asyncio.create_task(supply_loop(redis, _collections_list))
     # флор по коллекциям для карточек на Search — фон, раз в 15 минут
     floor_task = asyncio.create_task(floor_loop(redis, _collections_list))
+    # коллекции из NEW держим загруженными, чтобы открывались сразу
+    warm_task = asyncio.create_task(warm_loop(orchestrator))
     yield
     supply_task.cancel()
     floor_task.cancel()
+    warm_task.cancel()
     await redis.aclose()
 
 
@@ -147,6 +152,23 @@ async def listings_live(body: LiveCheck):
         raise HTTPException(status_code=500, detail=str(e))
     status = await live_status(redis, listings, [i.model_dump() for i in body.items])
     return {"status": status}
+
+
+class Visit(BaseModel):
+    event: str = Field(..., pattern="^(open|collection)$")
+    collection: str | None = None
+    user: dict | None = None
+
+
+@app.post("/visit")
+async def visit(body: Visit, request: Request):
+    """Счётчик посетителей (см. stats.py). Ошибки глотаем — статистика не должна ломать приложение."""
+    ip = request.headers.get("x-real-ip") or (request.client.host if request.client else None)
+    try:
+        await record_visit(redis, body.event, body.collection, body.user, ip, request.headers.get("user-agent"))
+    except Exception as e:
+        print(f"[Stats] {type(e).__name__}: {e!r}", flush=True)
+    return {"ok": True}
 
 
 @app.get("/rarity")
