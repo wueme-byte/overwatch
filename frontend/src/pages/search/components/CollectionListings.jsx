@@ -231,6 +231,17 @@ export default function CollectionListings({ col, onBack }) {
         backdropQuery={backdropQuery} setBackdropQuery={setBackdropQuery}
       />
 
+      {/* Тап мимо открытого списка фильтра (по лотам ниже шапки) закрывает его и не открывает
+          карточку под ним. Подложка внутри шапки этого не умеет: из-за backdropFilter шапки её
+          position: fixed накрывает только саму шапку. Эта — поверх списка (zIndex 10),
+          но под шапкой со списками (zIndex 20). */}
+      {(dropdownOpen || backdropOpen) && (
+        <div
+          onClick={() => { openModel(false); openColor(false) }}
+          style={{ position: 'fixed', inset: 0, zIndex: 15 }}
+        />
+      )}
+
       {/* ── список ── */}
       <div
         ref={scrollRef}
