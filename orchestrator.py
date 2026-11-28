@@ -202,9 +202,10 @@ class NFTOrchestrator:
             frag_results = enriched_frag
 
         all_listings: list[NFTListing] = []
-        for result in (gg_results, frag_results):
+        for source, result in (("GetGems", gg_results), ("Fragment", frag_results)):
             if isinstance(result, Exception):
-                print(f"[Orchestrator] Fetcher error: {result}")
+                print(f"[Orchestrator] Fetcher error [{source}] ({display_name}): "
+                      f"{type(result).__name__}: {result!r}")
             else:
                 all_listings.extend(result)
 
