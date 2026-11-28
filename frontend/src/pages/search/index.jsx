@@ -26,24 +26,20 @@ const BG = (
 )
 
 // Новинки: поднимаются в начало списка и получают плашку NEW.
-// Порядок в массиве = порядок на экране. Сравнение по основе слова,
-// чтобы пережить переименование вида «Myth Mask» → «Myth Masks».
-const NEW_COLLECTIONS = ['hoarse horse', 'resistance dog', 'myth mask']
-
-const isNewCollection = col =>
-  NEW_COLLECTIONS.some(n => col.name.toLowerCase().includes(n))
+// Какие коллекции новые и в каком порядке, решает сервер (warm.py → поля is_new, new_rank).
+const isNewCollection = col => col.is_new === true
 
 // Закреплённые сразу после новинок — без плашки NEW, порядок в массиве = порядок на экране
 const PINNED_COLLECTIONS = ['plush pepe']
 
 // Порядок: новинки → закреплённые → остальные как пришли → Toy Bears в конце
+const NEW_SLOTS = 100   // с запасом: новинок всегда меньше
 const collectionRank = col => {
   const name = col.name.toLowerCase()
-  const top = NEW_COLLECTIONS.length + PINNED_COLLECTIONS.length
-  const i = NEW_COLLECTIONS.findIndex(n => name.includes(n))
-  if (i !== -1) return i - top
+  const top = NEW_SLOTS + PINNED_COLLECTIONS.length
+  if (isNewCollection(col)) return (col.new_rank ?? 0) - top
   const j = PINNED_COLLECTIONS.findIndex(n => name.includes(n))
-  if (j !== -1) return NEW_COLLECTIONS.length + j - top
+  if (j !== -1) return NEW_SLOTS + j - top
   return name.includes('toy bear') ? 1 : 0
 }
 
