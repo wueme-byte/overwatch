@@ -1,6 +1,8 @@
 import os
+import time
 import asyncio
 import json
+from collections import OrderedDict
 import aiohttp
 from decimal import Decimal
 from redis.asyncio import Redis
@@ -17,6 +19,9 @@ COLLECTIONS_CACHE_KEY = "nft:collections"
 # Запасная копия листингов: когда свежий кэш (CACHE_TTL) истёк, отдаём её сразу,
 # а свежие данные подтягиваем в фоне — чтобы пользователь не ждал полную загрузку.
 STALE_TTL = 6 * 3600
+# В1: сколько коллекций держать разобранными в памяти процесса (самые недавние).
+# Myth Masks ~17 800 лотов — самая крупная; остальные в разы меньше.
+MEM_MAX_COLLECTIONS = 12
 
 
 async def _fetch_ton_price(session: aiohttp.ClientSession) -> Decimal:
@@ -55,9 +60,25 @@ class NFTOrchestrator:
     def __init__(self, redis: Redis):
         self.redis = redis
         self._inflight: dict[str, asyncio.Task] = {}
+        # В1: slug → (версия данных, готовый список NFTListing). Раньше на КАЖДЫЙ запрос
+        # из Redis приходил JSON (у Myth Masks 15 МБ) и разбирался заново: ~0.7–0.85 с
+        # на сервере с одним ядром, и всё это время API больше никому не отвечал.
+        # Теперь разбираем один раз на каждую новую версию данных.
+        self._mem: "OrderedDict[str, tuple[str, list[NFTListing]]]" = OrderedDict()
 
     def _cache_key(self, slug: str) -> str:
         return f"nft:listings:{slug}"
+
+    def _ver_key(self, slug: str) -> str:
+        # метка версии: меняется при каждой записи свежих данных (см. _do_fetch);
+        # по ней видно, что разобранная копия в памяти всё ещё актуальна
+        return f"nft:listings:ver:{slug}"
+
+    def _mem_put(self, slug: str, ver: str, listings: list[NFTListing]) -> None:
+        self._mem[slug] = (ver, listings)
+        self._mem.move_to_end(slug)
+        while len(self._mem) > MEM_MAX_COLLECTIONS:
+            self._mem.popitem(last=False)
 
     def _stale_key(self, slug: str) -> str:
         return f"nft:listings:stale:{slug}"
@@ -129,16 +150,35 @@ class NFTOrchestrator:
         key = self._cache_key(collection_slug)
 
         if not force_refresh:
-            cached = await self.redis.get(key)
+            # одним обращением к Redis: жив ли свежий кэш и какая версия данных
+            pipe = self.redis.pipeline()
+            pipe.exists(key)
+            pipe.get(self._ver_key(collection_slug))
+            fresh_alive, ver = await pipe.execute()
+
+            mem = self._mem.get(collection_slug)
+            if mem and ver and mem[0] == ver:
+                self._mem.move_to_end(collection_slug)
+                if not fresh_alive:
+                    self._start_fetch(collection_slug)  # копия устарела — обновим в фоне
+                return mem[1]
+
+            # в памяти нет или там старая версия — разбираем из Redis (один раз)
+            cached = await self.redis.get(key) if fresh_alive else None
             if cached:
-                raw = json.loads(cached)
-                return [_deserialize_listing(item) for item in raw]
+                listings = [_deserialize_listing(item) for item in json.loads(cached)]
+                if ver:
+                    self._mem_put(collection_slug, ver, listings)
+                return listings
 
             # свежего нет — отдаём запасную копию, обновление идёт в фоне
             stale = await self.redis.get(self._stale_key(collection_slug))
             if stale:
                 self._start_fetch(collection_slug)
-                return [_deserialize_listing(item) for item in json.loads(stale)]
+                listings = [_deserialize_listing(item) for item in json.loads(stale)]
+                if ver:
+                    self._mem_put(collection_slug, ver, listings)
+                return listings
 
         # данных нет совсем (или force_refresh) — ждём загрузку;
         # если она уже идёт для этой коллекции, ждём её же
@@ -222,6 +262,12 @@ class NFTOrchestrator:
         deduped = sorted(seen.values(), key=lambda x: _usd_sort_key(x, ton_price))
 
         payload = json.dumps([vars(l) for l in deduped], default=str)
-        await self.redis.setex(key, CACHE_TTL, payload)
-        await self.redis.setex(self._stale_key(collection_slug), STALE_TTL, payload)
+        ver = f"{time.time():.6f}"
+        pipe = self.redis.pipeline()
+        pipe.setex(key, CACHE_TTL, payload)
+        pipe.setex(self._stale_key(collection_slug), STALE_TTL, payload)
+        pipe.setex(self._ver_key(collection_slug), STALE_TTL, ver)
+        await pipe.execute()
+        # в памяти — копия «как из Redis» (Decimal/Enum те же), чтобы ответы не отличались
+        self._mem_put(collection_slug, ver, [_deserialize_listing(i) for i in json.loads(payload)])
         return deduped
